@@ -1,0 +1,29 @@
+#include <windows.h>
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "app.manifest"
+
+VS_VERSION_INFO VERSIONINFO
+    FILEVERSION    1,0,0,0
+    PRODUCTVERSION 1,0,0,0
+    FILEFLAGSMASK  VS_FFI_FILEFLAGSMASK
+    FILEFLAGS      0
+    FILEOS         VOS_NT_WINDOWS32
+    FILETYPE       VFT_APP
+    FILESUBTYPE    0
+{
+    BLOCK "StringFileInfo" {
+        BLOCK "000004B0" {
+            VALUE "CompanyName",      "Elaine Gibson"
+            VALUE "FileDescription",  "Voltyx"
+            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "InternalName",     "voltyx"
+            VALUE "LegalCopyright",   "Copyright \251 Elaine Gibson, et al."
+            VALUE "OriginalFilename", "voltyx.exe"
+            VALUE "ProductName",      "Voltyx"
+            VALUE "ProductVersion",   "1.0.0.0"
+        }
+    }
+    BLOCK "VarFileInfo" {
+        VALUE "Translation", 0x0000, 0x04B0
+    }
+}
