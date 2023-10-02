@@ -3,6 +3,7 @@ const glfw = @import("mach-glfw");
 const gl = @import("gl.zig");
 const vfs = @import("vfs.zig");
 const config = @import("config.zig");
+const input = @import("input.zig");
 
 pub const allocator = std.heap.c_allocator;
 
@@ -26,10 +27,15 @@ pub fn main() !void {
     glfw.swapInterval(1);
     try gl.load(glfw.getProcAddress);
 
+    try input.init(window);
+
     while (!window.shouldClose()) {
         _ = arena.reset(.retain_capacity);
+
         gl.clear(gl.COLOR_BUFFER_BIT);
         window.swapBuffers();
+
         glfw.pollEvents();
+        input.updateJoystick();
     }
 }
