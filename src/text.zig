@@ -15,7 +15,7 @@ var program: glw.Program(.{
 pub fn init() !void {
     const ft = try freetype.Library.init();
 
-    const path = try vfs.absolutePath("NotoSansJP-Regular.ttf");
+    const path = try vfs.absolutePath("fonts/NotoSansJP-Regular.ttf");
     face = try ft.createFace(path, 0);
 
     const vertex_bytes = try vfs.readFile(game.temp_allocator, "shaders/text.vert");
