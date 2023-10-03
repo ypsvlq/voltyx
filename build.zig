@@ -38,6 +38,13 @@ pub fn build(b: *std.Build) void {
     exe.addModule("mach-glfw", glfw_dep.module("mach-glfw"));
     @import("mach_glfw").link(glfw_dep.builder, exe);
 
+    const freetype_dep = b.dependency("mach_freetype", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.addModule("mach-freetype", freetype_dep.module("mach-freetype"));
+    @import("mach_freetype").linkFreetype(freetype_dep.builder, exe);
+
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
