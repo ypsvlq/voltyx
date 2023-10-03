@@ -38,4 +38,6 @@ pub fn main() !void {
         glfw.pollEvents();
         input.updateJoystick();
     }
+
+    try config.save();
 }

@@ -46,7 +46,7 @@ const KeyAction = union(enum) {
 
 var keymap: std.EnumMap(glfw.Key, KeyAction) = .{};
 
-pub fn keyConfig(key_name: []const u8, action_name: []const u8) !void {
+pub fn keyConfigLoad(key_name: []const u8, action_name: []const u8) !void {
     const key = std.meta.stringToEnum(glfw.Key, key_name) orelse return error.UnknownKey;
     if (std.meta.stringToEnum(Button, action_name)) |button| {
         keymap.put(key, .{ .button = button });
@@ -54,6 +54,17 @@ pub fn keyConfig(key_name: []const u8, action_name: []const u8) !void {
         keymap.put(key, .{ .laser = laser });
     } else {
         return error.UnknownAction;
+    }
+}
+
+pub fn keyConfigSave(writer: std.fs.File.Writer) !void {
+    var iter = keymap.iterator();
+    while (iter.next()) |entry| {
+        const value = switch (entry.value.*) {
+            .button => |button| @tagName(button),
+            .laser => |laser| @tagName(laser),
+        };
+        try writer.print("{s} = {s}\n", .{ @tagName(entry.key), value });
     }
 }
 
@@ -95,10 +106,17 @@ var joystick_button_map: std.EnumMap(Button, u8) = .{};
 var last_joystick_state = State{};
 var joystick_laser_flags = [2]bool{ false, false };
 
-pub fn joystickConfig(button_name: []const u8, key: []const u8) !void {
+pub fn joystickConfigLoad(button_name: []const u8, value: []const u8) !void {
     const button = std.meta.stringToEnum(Button, button_name) orelse return error.UnknownButton;
-    const index = try std.fmt.parseInt(u8, key, 10);
+    const index = try std.fmt.parseInt(u8, value, 10);
     joystick_button_map.put(button, index);
+}
+
+pub fn joystickConfigSave(writer: std.fs.File.Writer) !void {
+    var iter = joystick_button_map.iterator();
+    while (iter.next()) |entry| {
+        try writer.print("{s} = {}\n", .{ @tagName(entry.key), entry.value.* });
+    }
 }
 
 pub fn updateJoystick() void {

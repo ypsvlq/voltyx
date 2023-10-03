@@ -13,6 +13,10 @@ pub fn openFile(path: []const u8) !fs.File {
     return dir.openFile(path, .{});
 }
 
+pub fn createFile(path: []const u8) !fs.File {
+    return dir.createFile(path, .{});
+}
+
 pub fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     const file = try openFile(path);
     defer file.close();
