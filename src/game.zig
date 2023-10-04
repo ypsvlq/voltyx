@@ -36,6 +36,7 @@ pub fn main() !void {
 
     try input.init(window);
     try text.init();
+    try ui.init();
 
     while (!window.shouldClose()) {
         _ = arena.reset(.retain_capacity);

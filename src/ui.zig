@@ -1,13 +1,30 @@
 const std = @import("std");
+const glfw = @import("mach-glfw");
 const game = @import("game.zig");
 const input = @import("input.zig");
 const text = @import("text.zig");
+
+var scale: f32 = 1;
+
+pub fn init() !void {
+    scale = game.window.getContentScale().y_scale;
+    game.window.setContentScaleCallback(scaleCallback);
+}
+
+fn scaleCallback(_: glfw.Window, _: f32, y_scale: f32) void {
+    scale = y_scale;
+}
+
+fn scaleInt(comptime T: type, value: T) T {
+    const float: f32 = @floatFromInt(value);
+    return @intFromFloat(float * scale);
+}
 
 pub fn drawText() !void {
     const x = 10;
     var y: u16 = 10;
 
-    try text.setSize(32);
+    try text.setSize(scaleInt(u32, 32));
     const height: u16 = @intCast(text.getLineHeight());
 
     var iter = input.state.buttons.iterator();
