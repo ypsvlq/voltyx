@@ -18,9 +18,7 @@ pub fn init() !void {
     const path = try vfs.absolutePath("fonts/NotoSansJP-Regular.ttf");
     face = try ft.createFace(path, 0);
 
-    const vertex_bytes = try vfs.readFile(game.temp_allocator, "shaders/text.vert");
-    const fragment_bytes = try vfs.readFile(game.temp_allocator, "shaders/text.frag");
-    try program.create(vertex_bytes, fragment_bytes);
+    try program.compile("shaders/text.vert", "shaders/text.frag");
     program.enableAttribArray(.vertex);
 }
 

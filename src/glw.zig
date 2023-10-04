@@ -1,6 +1,7 @@
 const std = @import("std");
 const gl = @import("gl.zig");
 const game = @import("game.zig");
+const vfs = @import("vfs.zig");
 const log = std.log.scoped(.gl);
 
 pub fn transpose(comptime n: usize, matrix: [n][n]f32) [n][n]f32 {
@@ -75,17 +76,18 @@ pub fn Program(comptime vars: ProgramVars) type {
 
         const Self = @This();
 
-        pub fn create(self: *Self, vertex_bytes: []const u8, fragment_bytes: []const u8) !void {
-            self.program = gl.createProgram();
-
+        pub fn compile(self: *Self, vertex_path: []const u8, fragment_path: []const u8) !void {
+            const vertex_bytes = try vfs.readFile(game.temp_allocator, vertex_path);
             const vertex = try compileShader(.vertex, vertex_bytes);
             defer gl.deleteShader(vertex);
-            gl.attachShader(self.program, vertex);
 
+            const fragment_bytes = try vfs.readFile(game.temp_allocator, fragment_path);
             const fragment = try compileShader(.fragment, fragment_bytes);
             defer gl.deleteShader(fragment);
-            gl.attachShader(self.program, fragment);
 
+            self.program = gl.createProgram();
+            gl.attachShader(self.program, vertex);
+            gl.attachShader(self.program, fragment);
             gl.linkProgram(self.program);
 
             for (&self.attribs, attribs) |*out, attrib| {
