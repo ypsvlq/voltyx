@@ -85,17 +85,34 @@ pub fn Program(comptime vars: ProgramVars) type {
             const fragment = try compileShader(.fragment, fragment_bytes);
             defer gl.deleteShader(fragment);
 
-            self.program = gl.createProgram();
-            gl.attachShader(self.program, vertex);
-            gl.attachShader(self.program, fragment);
-            gl.linkProgram(self.program);
+            const program = gl.createProgram();
+            errdefer gl.deleteProgram(program);
+            gl.attachShader(program, vertex);
+            gl.attachShader(program, fragment);
+            gl.linkProgram(program);
+
+            var success: i32 = undefined;
+            gl.getProgramiv(program, gl.LINK_STATUS, &success);
+            if (success == gl.FALSE) {
+                var info_len: i32 = undefined;
+                gl.getProgramiv(program, gl.INFO_LOG_LENGTH, &info_len);
+
+                var info = try game.temp_allocator.alloc(u8, @intCast(info_len));
+                gl.getProgramInfoLog(program, info_len, null, info.ptr);
+                info.len -= 1; // null terminator
+
+                log.err("program link failed:\n{s}", .{info});
+                return error.ProgramLinkFail;
+            }
+
+            self.program = program;
 
             for (&self.attribs, attribs) |*out, attrib| {
-                out.* = @bitCast(gl.getAttribLocation(self.program, @tagName(attrib)));
+                out.* = @bitCast(gl.getAttribLocation(program, @tagName(attrib)));
             }
 
             for (&self.uniforms, uniforms) |*out, uniform| {
-                out.* = gl.getUniformLocation(self.program, @tagName(uniform));
+                out.* = gl.getUniformLocation(program, @tagName(uniform));
             }
         }
 
