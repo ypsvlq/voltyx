@@ -42,16 +42,16 @@ fn loadChar(char: u21, size: u16) !RenderedChar {
         try face.setPixelSizes(size, size);
         try face.loadChar(char, .{ .render = true });
         const glyph = face.glyph();
-        const bitmap = glyph.bitmap().handle;
+        const bitmap = glyph.bitmap();
 
         var result: RenderedChar = .{ .advance = @floatFromInt(glyph.advance().x >> 6), .bitmap = null };
 
-        if (bitmap.buffer) |buffer| {
-            const texture = try glw.createTexture(buffer, bitmap.width, bitmap.rows, .alpha);
+        if (bitmap.buffer()) |buffer| {
+            const texture = try glw.createTexture(buffer.ptr, bitmap.width(), bitmap.rows(), .alpha);
             result.bitmap = .{
                 .texture = texture,
-                .width = @floatFromInt(bitmap.width),
-                .height = @floatFromInt(bitmap.rows),
+                .width = @floatFromInt(bitmap.width()),
+                .height = @floatFromInt(bitmap.rows()),
                 .offset_x = @floatFromInt(glyph.bitmapLeft()),
                 .offset_y = @floatFromInt(glyph.bitmapTop()),
             };

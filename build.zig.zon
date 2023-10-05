@@ -3,12 +3,12 @@
     .version = "0.0.0",
     .dependencies = .{
         .mach_glfw = .{
-            .url = "https://pkg.machengine.org/mach-glfw/321efd4065b57e31d8ab0bce720852c1d680d443.tar.gz",
-            .hash = "122002e355cf42b8d257efc95229c9ee6be4cca189c1718f86179cb7c21225beeb75",
+            .url = "https://pkg.machengine.org/mach-glfw/076b3869cbfd2ccccb6a8c01e4128bb0d7977ebb.tar.gz",
+            .hash = "1220cafbb90ea86d92c07f779e8106e6f5c3d8ab4cc68ddc8d3f80bd4b6079064135",
         },
         .mach_freetype = .{
-            .url = "https://pkg.machengine.org/mach-freetype/92773615e2480c0a6f561748f2ba1180376bbb68.tar.gz",
-            .hash = "12205a6057fe43a4940c6db304449ebf3e98ff15d0eec05b75f621d7616c2e7d7f2c",
+            .url = "https://pkg.machengine.org/mach-freetype/90b353a9425067010ae5e924dc845e5e5045dab7.tar.gz",
+            .hash = "12200d064703408a8c4a5734dac089a07c228d94a2ea19f3d2b5a07c2c97f1ca46dc",
         },
     },
 }
