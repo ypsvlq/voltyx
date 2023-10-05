@@ -1,9 +1,9 @@
 const std = @import("std");
 const glfw = @import("mach-glfw");
-const gl = @import("gl.zig");
 const vfs = @import("vfs.zig");
 const config = @import("config.zig");
 const input = @import("input.zig");
+const renderer = @import("renderer.zig");
 const text = @import("text.zig");
 const ui = @import("ui.zig");
 
@@ -27,26 +27,15 @@ pub fn main() !void {
     defer glfw.terminate();
 
     window = glfw.Window.create(config.width, config.height, "Voltyx", null, null, .{ .scale_to_monitor = true }) orelse return error.WindowCreation;
-    glfw.makeContextCurrent(window);
-    glfw.swapInterval(1);
-    try gl.load(glfw.getProcAddress);
-
-    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     try input.init(window);
+    try renderer.init();
     try text.init();
     try ui.init();
 
     while (!window.shouldClose()) {
         _ = arena.reset(.retain_capacity);
-
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.enable(gl.BLEND);
-        try ui.drawText();
-        gl.disable(gl.BLEND);
-        window.swapBuffers();
-
+        try renderer.draw();
         glfw.pollEvents();
         input.updateJoystick();
     }
