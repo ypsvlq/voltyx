@@ -10,5 +10,9 @@
             .url = "https://pkg.machengine.org/mach-freetype/90b353a9425067010ae5e924dc845e5e5045dab7.tar.gz",
             .hash = "12200d064703408a8c4a5734dac089a07c228d94a2ea19f3d2b5a07c2c97f1ca46dc",
         },
+        .zigimg = .{
+            .url = "https://github.com/zigimg/zigimg/archive/beacb0351e7a66e2073c63b1029450ae51bd1b01.tar.gz",
+            .hash = "1220178a3f11faba872c922ce6ba575774867592746695866f6894b068e3caf3c3ab",
+        },
     },
 }

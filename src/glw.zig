@@ -1,8 +1,13 @@
 const std = @import("std");
+const img = @import("zigimg");
 const gl = @import("gl.zig");
 const game = @import("game.zig");
 const vfs = @import("vfs.zig");
 const log = std.log.scoped(.gl);
+
+pub fn radians(degrees: f32) f32 {
+    return degrees * std.math.pi / 180;
+}
 
 pub fn transpose(comptime n: usize, matrix: [n][n]f32) [n][n]f32 {
     var result: [n][n]f32 = undefined;
@@ -12,6 +17,60 @@ pub fn transpose(comptime n: usize, matrix: [n][n]f32) [n][n]f32 {
         }
     }
     return result;
+}
+
+pub fn multiply(a: [4][4]f32, b: [4][4]f32) [4][4]f32 {
+    var result = std.mem.zeroes([4][4]f32);
+    for (0..4) |i| {
+        for (0..4) |j| {
+            for (0..4) |k| {
+                result[i][j] += a[i][k] * b[k][j];
+            }
+        }
+    }
+    return result;
+}
+
+pub fn translation(v: [3]f32) [4][4]f32 {
+    return transpose(4, .{
+        .{ 1, 0, 0, 0 },
+        .{ 0, 1, 0, 0 },
+        .{ 0, 0, 1, 0 },
+        .{ v[0], v[1], v[2], 1 },
+    });
+}
+
+pub fn rotationX(angle: f32) [4][4]f32 {
+    const s = @sin(angle);
+    const c = @cos(angle);
+    return transpose(4, .{
+        .{ 1, 0, 0, 0 },
+        .{ 0, c, s, 0 },
+        .{ 0, -s, c, 0 },
+        .{ 0, 0, 0, 1 },
+    });
+}
+
+pub fn rotationY(angle: f32) [4][4]f32 {
+    const s = @sin(angle);
+    const c = @cos(angle);
+    return transpose(4, .{
+        .{ c, 0, -s, 0 },
+        .{ 0, 1, 0, 0 },
+        .{ s, 0, c, 0 },
+        .{ 0, 0, 0, 1 },
+    });
+}
+
+pub fn rotationZ(angle: f32) [4][4]f32 {
+    const s = @sin(angle);
+    const c = @cos(angle);
+    return transpose(4, .{
+        .{ c, s, 0, 0 },
+        .{ -s, c, 0, 0 },
+        .{ 0, 0, 1, 0 },
+        .{ 0, 0, 0, 1 },
+    });
 }
 
 pub fn ortho(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) [4][4]f32 {
@@ -26,6 +85,17 @@ pub fn ortho(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) 
         .{ 0, b, 0, ty },
         .{ 0, 0, c, tz },
         .{ 0, 0, 0, 1 },
+    });
+}
+
+pub fn perspective(fov: f32, aspect: f32, near: f32, far: f32) [4][4]f32 {
+    const fov_radians = radians(fov);
+    const f = 1 / @tan(fov_radians / 2);
+    return transpose(4, .{
+        .{ f / aspect, 0, 0, 0 },
+        .{ 0, f, 0, 0 },
+        .{ 0, 0, (far + near) / (near - far), (2 * far * near) / (near - far) },
+        .{ 0, 0, -1, 0 },
     });
 }
 
@@ -145,9 +215,10 @@ pub fn Program(comptime vars: ProgramVars) type {
 pub const TextureFormat = enum(u16) {
     alpha = gl.ALPHA,
     rgb = gl.RGB,
+    rgba = gl.RGBA,
 };
 
-pub fn createTexture(bytes: [*]const u8, width: isize, height: isize, texture_format: TextureFormat) !u32 {
+pub fn createTexture(bytes: [*]const u8, width: usize, height: usize, texture_format: TextureFormat) !u32 {
     const format = @intFromEnum(texture_format);
 
     var texture: u32 = undefined;
@@ -160,4 +231,21 @@ pub fn createTexture(bytes: [*]const u8, width: isize, height: isize, texture_fo
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     return texture;
+}
+
+pub fn loadPNG(path: []const u8) !u32 {
+    const file = try vfs.openFile(path);
+    defer file.close();
+
+    var stream = std.io.StreamSource{ .file = file };
+    const image = try img.png.PNG.readImage(game.temp_allocator, &stream);
+
+    const format: TextureFormat = switch (image.pixelFormat()) {
+        .grayscale8 => .alpha,
+        .rgb24 => .rgb,
+        .rgba32 => .rgba,
+        else => return error.UnsupportedPixelFormat,
+    };
+
+    return createTexture(image.rawBytes().ptr, image.width, image.height, format);
 }
