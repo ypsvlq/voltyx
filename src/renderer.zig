@@ -66,7 +66,7 @@ fn drawLane() void {
     const rz = glw.rotationZ(roll);
     const r = glw.multiply(rz, glw.multiply(ry, rx));
     const t = glw.translation(camera_pos);
-    const view = glw.transpose(4, glw.multiply(t, r));
+    const view = glw.transpose(glw.multiply(t, r));
     lane_program.setUniform(.view, &view);
 
     gl.activeTexture(gl.TEXTURE0);

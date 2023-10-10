@@ -9,10 +9,10 @@ pub fn radians(degrees: f32) f32 {
     return degrees * std.math.pi / 180;
 }
 
-pub fn transpose(comptime n: usize, matrix: [n][n]f32) [n][n]f32 {
-    var result: [n][n]f32 = undefined;
-    for (0..n) |i| {
-        for (0..n) |j| {
+pub fn transpose(matrix: [4][4]f32) [4][4]f32 {
+    var result: [4][4]f32 = undefined;
+    for (0..4) |i| {
+        for (0..4) |j| {
             result[j][i] = matrix[i][j];
         }
     }
@@ -32,7 +32,7 @@ pub fn multiply(a: [4][4]f32, b: [4][4]f32) [4][4]f32 {
 }
 
 pub fn translation(v: [3]f32) [4][4]f32 {
-    return transpose(4, .{
+    return transpose(.{
         .{ 1, 0, 0, 0 },
         .{ 0, 1, 0, 0 },
         .{ 0, 0, 1, 0 },
@@ -43,7 +43,7 @@ pub fn translation(v: [3]f32) [4][4]f32 {
 pub fn rotationX(angle: f32) [4][4]f32 {
     const s = @sin(angle);
     const c = @cos(angle);
-    return transpose(4, .{
+    return transpose(.{
         .{ 1, 0, 0, 0 },
         .{ 0, c, s, 0 },
         .{ 0, -s, c, 0 },
@@ -54,7 +54,7 @@ pub fn rotationX(angle: f32) [4][4]f32 {
 pub fn rotationY(angle: f32) [4][4]f32 {
     const s = @sin(angle);
     const c = @cos(angle);
-    return transpose(4, .{
+    return transpose(.{
         .{ c, 0, -s, 0 },
         .{ 0, 1, 0, 0 },
         .{ s, 0, c, 0 },
@@ -65,7 +65,7 @@ pub fn rotationY(angle: f32) [4][4]f32 {
 pub fn rotationZ(angle: f32) [4][4]f32 {
     const s = @sin(angle);
     const c = @cos(angle);
-    return transpose(4, .{
+    return transpose(.{
         .{ c, s, 0, 0 },
         .{ -s, c, 0, 0 },
         .{ 0, 0, 1, 0 },
@@ -80,7 +80,7 @@ pub fn ortho(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) 
     const tx = -(right + left) / (right - left);
     const ty = -(top + bottom) / (top - bottom);
     const tz = -(far + near) / (far - near);
-    return transpose(4, .{
+    return transpose(.{
         .{ a, 0, 0, tx },
         .{ 0, b, 0, ty },
         .{ 0, 0, c, tz },
@@ -91,7 +91,7 @@ pub fn ortho(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) 
 pub fn perspective(fov: f32, aspect: f32, near: f32, far: f32) [4][4]f32 {
     const fov_radians = radians(fov);
     const f = 1 / @tan(fov_radians / 2);
-    return transpose(4, .{
+    return transpose(.{
         .{ f / aspect, 0, 0, 0 },
         .{ 0, f, 0, 0 },
         .{ 0, 0, (far + near) / (near - far), (2 * far * near) / (near - far) },
