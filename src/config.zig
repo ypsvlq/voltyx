@@ -11,6 +11,9 @@ pub var joystick_name: ?[]const u8 = null;
 pub var joystick_vol_l: ?u8 = null;
 pub var joystick_vol_r: ?u8 = null;
 
+pub var left_color = [3]f32{ 0.11372549, 0.8980392, 0.9254902 };
+pub var right_color = [3]f32{ 0.96862745, 0.38039216, 0.76470589 };
+
 const Handlers = struct {
     load: *const fn ([]const u8, []const u8) anyerror!void,
     save: *const fn (std.fs.File.Writer) anyerror!void,
@@ -28,9 +31,17 @@ fn set(comptime T: type, ptr: anytype, value: []const u8) !void {
     }
     switch (@typeInfo(T)) {
         .Int => ptr.* = try std.fmt.parseInt(T, value, 10),
+        .Float => ptr.* = try std.fmt.parseFloat(T, value),
         .Optional => return set(std.meta.Child(T), ptr, value),
-        .Fn => {},
-        .Type => {},
+        .Array => {
+            var iter = std.mem.tokenizeScalar(u8, value, ' ');
+            for (ptr) |*elem_ptr| {
+                const elem = iter.next() orelse return error.NotEnoughElements;
+                try set(std.meta.Child(T), elem_ptr, elem);
+            }
+            if (iter.next() != null) return error.ExtraElement;
+        },
+        .Fn, .Type => {},
         else => @compileError("unhandled type: " ++ @typeName(T)),
     }
 }
@@ -71,9 +82,15 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
     }
     switch (@typeInfo(T)) {
         .Int => try writer.print("{s} = {}\n", .{ name, value }),
+        .Array => {
+            try writer.print("{s} =", .{name});
+            for (value) |elem| {
+                try writer.print(" {}", .{elem});
+            }
+            try writer.writeByte('\n');
+        },
         .Optional => if (value) |unwrapped| try writeEntry(writer, name, unwrapped),
-        .Fn => {},
-        .Type => {},
+        .Fn, .Type => {},
         else => @compileError("unhandled type: " ++ @typeName(T)),
     }
 }

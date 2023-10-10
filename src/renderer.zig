@@ -5,11 +5,12 @@ const gl = @import("gl.zig");
 const glw = @import("glw.zig");
 const game = @import("game.zig");
 const vfs = @import("vfs.zig");
+const config = @import("config.zig");
 const ui = @import("ui.zig");
 
 var lane_program: glw.Program(.{
     .Attrib = enum { vertex },
-    .Uniform = enum { projection, view, texture },
+    .Uniform = enum { projection, view, texture, left_color, right_color },
 }) = undefined;
 
 var lane_texture: u32 = undefined;
@@ -72,6 +73,9 @@ fn drawLane() void {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, lane_texture);
     lane_program.setUniform(.texture, 0);
+
+    lane_program.setUniform(.left_color, config.left_color);
+    lane_program.setUniform(.right_color, config.right_color);
 
     const vertices = [_]f32{
         -0.5, 0,   0, 1,
