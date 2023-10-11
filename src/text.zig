@@ -65,15 +65,15 @@ fn loadChar(char: u21, size: u16) !RenderedChar {
 
 pub fn draw(text: []const u8, start_x: u16, start_y: u16) !void {
     program.use();
-
     program.setUniform(.projection, &renderer.ortho);
+    program.setUniform(.color, [3]f32{ 1, 1, 1 });
 
     const size = face.size().metrics().y_ppem;
 
-    var current_x: f32 = @floatFromInt(start_x);
-    var current_y = renderer.height;
-    current_y -= @floatFromInt(start_y);
-    current_y -= @floatFromInt(size);
+    var x: f32 = @floatFromInt(start_x);
+    var y = renderer.height;
+    y -= @floatFromInt(start_y);
+    y -= @floatFromInt(size);
 
     const view = try std.unicode.Utf8View.init(text);
     var iter = view.iterator();
@@ -85,29 +85,16 @@ pub fn draw(text: []const u8, start_x: u16, start_y: u16) !void {
             gl.bindTexture(gl.TEXTURE_2D, bitmap.texture);
             program.setUniform(.texture, 0);
 
-            program.setUniform(.color, [3]f32{ 1, 1, 1 });
-
-            const x = current_x + bitmap.offset_x;
-            const y = current_y + bitmap.offset_y - bitmap.height;
-
-            const vertices = [_]f32{
-                x,                y,                 0, 1,
-                x,                y + bitmap.height, 0, 0,
-                x + bitmap.width, y + bitmap.height, 1, 0,
-                x + bitmap.width, y,                 1, 1,
-            };
-
-            program.setAttribPointer(.vertex, &vertices, 4, 0);
-
-            const indices = [_]u8{
-                0, 1, 2,
-                0, 2, 3,
-            };
-
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, &indices);
+            renderer.drawQuad(
+                program,
+                x + bitmap.offset_x,
+                y + bitmap.offset_y - bitmap.height,
+                bitmap.width,
+                bitmap.height,
+            );
         }
 
-        current_x += glyph.advance;
+        x += glyph.advance;
     }
 }
 

@@ -58,6 +58,22 @@ pub fn draw() !void {
     game.window.swapBuffers();
 }
 
+pub fn drawQuad(program: anytype, x: f32, y: f32, w: f32, h: f32) void {
+    const vertices = [_]f32{
+        x,     y,     0, 1,
+        x,     y + h, 0, 0,
+        x + w, y + h, 1, 0,
+        x + w, y,     1, 1,
+    };
+    program.setAttribPointer(.vertex, &vertices, 4, 0);
+
+    const indices = [_]u8{
+        0, 1, 2,
+        0, 2, 3,
+    };
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, &indices);
+}
+
 var camera_pos = [3]f32{ 0, -0.6, -1 };
 var pitch: f32 = 0.3;
 var yaw: f32 = 0;
@@ -65,8 +81,9 @@ var roll: f32 = 0;
 
 fn drawLane() void {
     lane_program.use();
-
     lane_program.setUniform(.projection, &perspective);
+    lane_program.setUniform(.left_color, config.left_color);
+    lane_program.setUniform(.right_color, config.right_color);
 
     const rx = glw.rotationX(pitch);
     const ry = glw.rotationY(yaw);
@@ -80,20 +97,5 @@ fn drawLane() void {
     gl.bindTexture(gl.TEXTURE_2D, lane_texture);
     lane_program.setUniform(.texture, 0);
 
-    lane_program.setUniform(.left_color, config.left_color);
-    lane_program.setUniform(.right_color, config.right_color);
-
-    const vertices = [_]f32{
-        -0.5, 0,   0, 1,
-        -0.5, -10, 0, 0,
-        0.5,  -10, 1, 0,
-        0.5,  0,   1, 1,
-    };
-    lane_program.setAttribPointer(.vertex, &vertices, 4, 0);
-
-    const indices = [_]u8{
-        0, 1, 2,
-        0, 2, 3,
-    };
-    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, &indices);
+    drawQuad(lane_program, -0.5, 0, 1, -10); // y is used as z in shader
 }
