@@ -8,6 +8,11 @@ const vfs = @import("vfs.zig");
 const config = @import("config.zig");
 const ui = @import("ui.zig");
 
+pub var width: f32 = undefined;
+pub var height: f32 = undefined;
+pub var ortho: [4][4]f32 = undefined;
+pub var perspective: [4][4]f32 = undefined;
+
 var lane_program: glw.Program(.{
     .Attrib = enum { vertex },
     .Uniform = enum { projection, view, texture, left_color, right_color },
@@ -24,16 +29,21 @@ pub fn init() !void {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const size = game.window.getSize();
-    gl.viewport(0, 0, @bitCast(size.width), @bitCast(size.height));
     game.window.setSizeCallback(sizeCallback);
+    sizeCallback(game.window, @bitCast(size.width), @bitCast(size.height));
 
     lane_texture = try glw.loadPNG("textures/lane.png");
     try lane_program.compile("shaders/lane.vert", "shaders/lane.frag");
     lane_program.enableAttribArray(.vertex);
 }
 
-fn sizeCallback(_: glfw.Window, width: i32, height: i32) void {
-    gl.viewport(0, 0, width, height);
+fn sizeCallback(_: glfw.Window, width_: i32, height_: i32) void {
+    gl.viewport(0, 0, width_, height_);
+
+    width = @floatFromInt(width_);
+    height = @floatFromInt(height_);
+    ortho = glw.ortho(0, width, 0, height, -1, 1);
+    perspective = glw.perspective(60, width / height, 0.1, 100);
 }
 
 pub fn draw() !void {
@@ -56,10 +66,6 @@ var roll: f32 = 0;
 fn drawLane() void {
     lane_program.use();
 
-    const size = game.window.getSize();
-    const width: f32 = @floatFromInt(size.width);
-    const height: f32 = @floatFromInt(size.height);
-    const perspective = glw.perspective(60, width / height, 0.1, 100);
     lane_program.setUniform(.projection, &perspective);
 
     const rx = glw.rotationX(pitch);

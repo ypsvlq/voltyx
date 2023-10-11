@@ -205,7 +205,7 @@ pub fn Program(comptime vars: ProgramVars) type {
             switch (@TypeOf(value)) {
                 comptime_int => gl.uniform1i(location, value),
                 [3]f32 => gl.uniform3f(location, value[0], value[1], value[2]),
-                *const [4][4]f32 => gl.uniformMatrix4fv(location, 1, gl.FALSE, @ptrCast(value)),
+                *[4][4]f32, *const [4][4]f32 => gl.uniformMatrix4fv(location, 1, gl.FALSE, @ptrCast(value)),
                 else => @compileError("unsupported uniform type: " ++ @typeName(@TypeOf(value))),
             }
         }

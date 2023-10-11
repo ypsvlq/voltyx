@@ -4,6 +4,7 @@ const gl = @import("gl.zig");
 const glw = @import("glw.zig");
 const vfs = @import("vfs.zig");
 const game = @import("game.zig");
+const renderer = @import("renderer.zig");
 
 var face: freetype.Face = undefined;
 
@@ -65,15 +66,12 @@ fn loadChar(char: u21, size: u16) !RenderedChar {
 pub fn draw(text: []const u8, start_x: u16, start_y: u16) !void {
     program.use();
 
-    const window_size = game.window.getSize();
-    gl.viewport(0, 0, @bitCast(window_size.width), @bitCast(window_size.height));
-    const ortho = glw.ortho(0, @floatFromInt(window_size.width), 0, @floatFromInt(window_size.height), 1, -1);
-    program.setUniform(.projection, &ortho);
+    program.setUniform(.projection, &renderer.ortho);
 
     const size = face.size().metrics().y_ppem;
 
     var current_x: f32 = @floatFromInt(start_x);
-    var current_y: f32 = @floatFromInt(window_size.height);
+    var current_y = renderer.height;
     current_y -= @floatFromInt(start_y);
     current_y -= @floatFromInt(size);
 
