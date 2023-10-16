@@ -10,6 +10,14 @@
             .url = "https://pkg.machengine.org/mach-freetype/90b353a9425067010ae5e924dc845e5e5045dab7.tar.gz",
             .hash = "12200d064703408a8c4a5734dac089a07c228d94a2ea19f3d2b5a07c2c97f1ca46dc",
         },
+        .mach_sysaudio = .{
+            .url = "https://pkg.machengine.org/mach-sysaudio/dba8539d9e9467d0c7e7bbdba2626a893c096f76.tar.gz",
+            .hash = "1220f55cd76ff3e6051878681ef15ddb845bd1cf9d201295346f8e9dac06e4077a94",
+        },
+        .mach_opus = .{
+            .url = "https://pkg.machengine.org/mach-opus/3cb7711e73748df738507640c070bf35a78c2daf.tar.gz",
+            .hash = "122060fa90c937a1c654448e08df547a910be4d26595e9bbf605c9dd9d434c87426e",
+        },
         .zigimg = .{
             .url = "https://github.com/zigimg/zigimg/archive/beacb0351e7a66e2073c63b1029450ae51bd1b01.tar.gz",
             .hash = "1220178a3f11faba872c922ce6ba575774867592746695866f6894b068e3caf3c3ab",

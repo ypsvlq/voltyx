@@ -45,6 +45,20 @@ pub fn build(b: *std.Build) void {
     exe.addModule("mach-freetype", freetype_dep.module("mach-freetype"));
     @import("mach_freetype").linkFreetype(freetype_dep.builder, exe);
 
+    const sysaudio_dep = b.dependency("mach_sysaudio", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.addModule("mach-sysaudio", sysaudio_dep.module("mach-sysaudio"));
+    @import("mach_sysaudio").link(sysaudio_dep.builder, exe);
+
+    const opus_dep = b.dependency("mach_opus", .{
+        .target = target,
+        .optimize = .ReleaseFast,
+    });
+    exe.addModule("mach-opus", opus_dep.module("mach-opus"));
+    @import("mach_opus").link(opus_dep.builder, exe);
+
     const zigimg_dep = b.dependency("zigimg", .{
         .target = target,
         .optimize = optimize,

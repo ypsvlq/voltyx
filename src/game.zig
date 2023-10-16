@@ -6,6 +6,7 @@ const input = @import("input.zig");
 const renderer = @import("renderer.zig");
 const text = @import("text.zig");
 const ui = @import("ui.zig");
+const audio = @import("audio.zig");
 
 pub const allocator = std.heap.c_allocator;
 
@@ -32,6 +33,11 @@ pub fn main() !void {
     try renderer.init();
     try text.init();
     try ui.init();
+    try audio.init();
+
+    if (config.song) |song| {
+        try audio.play(song);
+    }
 
     while (!window.shouldClose()) {
         _ = arena.reset(.retain_capacity);
