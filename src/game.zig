@@ -27,7 +27,10 @@ pub fn main() !void {
     if (!glfw.init(.{})) return error.WindowCreation;
     defer glfw.terminate();
 
-    window = glfw.Window.create(config.width, config.height, "Voltyx", null, null, .{ .scale_to_monitor = true }) orelse return error.WindowCreation;
+    window = glfw.Window.create(config.width, config.height, "Voltyx", null, null, .{
+        .scale_to_monitor = true,
+        .maximized = config.maximized,
+    }) orelse return error.WindowCreation;
 
     try input.init(window);
     try renderer.init();

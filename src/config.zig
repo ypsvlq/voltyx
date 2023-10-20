@@ -6,6 +6,7 @@ const input = @import("input.zig");
 
 pub var width: u16 = 800;
 pub var height: u16 = 450;
+pub var maximized: bool = false;
 
 pub var joystick_name: ?[]const u8 = null;
 pub var joystick_vol_l: ?u8 = null;
@@ -34,6 +35,7 @@ fn set(comptime T: type, ptr: anytype, value: []const u8) !void {
     switch (@typeInfo(T)) {
         .Int => ptr.* = try std.fmt.parseInt(T, value, 10),
         .Float => ptr.* = try std.fmt.parseFloat(T, value),
+        .Bool => ptr.* = if (std.mem.eql(u8, value, "true")) true else if (std.mem.eql(u8, value, "false")) false else return error.InvalidBool,
         .Optional => return set(std.meta.Child(T), ptr, value),
         .Array => {
             var iter = std.mem.tokenizeScalar(u8, value, ' ');
@@ -83,7 +85,7 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
         return;
     }
     switch (@typeInfo(T)) {
-        .Int => try writer.print("{s} = {}\n", .{ name, value }),
+        .Int, .Bool => try writer.print("{s} = {}\n", .{ name, value }),
         .Array => {
             try writer.print("{s} =", .{name});
             for (value) |elem| {
@@ -98,6 +100,11 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
 }
 
 pub fn save() !void {
+    const size = game.window.getSize();
+    width = @truncate(size.width);
+    height = @truncate(size.height);
+    maximized = (game.window.getAttrib(.maximized) == 1);
+
     const file = try vfs.createFile("config.ini");
     defer file.close();
     const writer = file.writer();
