@@ -3,6 +3,7 @@ const Ini = @import("Ini.zig");
 const vfs = @import("vfs.zig");
 const game = @import("game.zig");
 const input = @import("input.zig");
+const renderer = @import("renderer.zig");
 
 pub var width: u16 = 800;
 pub var height: u16 = 450;
@@ -100,9 +101,9 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
 }
 
 pub fn save() !void {
-    const size = game.window.getSize();
-    width = @truncate(size.width);
-    height = @truncate(size.height);
+    const scale = game.window.getContentScale();
+    width = @intFromFloat(renderer.width / scale.x_scale);
+    height = @intFromFloat(renderer.height / scale.y_scale);
     maximized = (game.window.getAttrib(.maximized) == 1);
 
     const file = try vfs.createFile("config.ini");
