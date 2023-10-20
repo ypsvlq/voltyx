@@ -43,7 +43,7 @@ fn sizeCallback(_: glfw.Window, width_: i32, height_: i32) void {
     width = @floatFromInt(width_);
     height = @floatFromInt(height_);
     ortho = glw.ortho(0, width, 0, height, -1, 1);
-    perspective = glw.perspective(60, width / height, 0.1, 100);
+    perspective = glw.perspective(45, width / height, 0.1, 100);
 }
 
 pub fn draw() !void {
@@ -74,8 +74,8 @@ pub fn drawQuad(program: anytype, x: f32, y: f32, w: f32, h: f32) void {
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, &indices);
 }
 
-var camera_pos = [3]f32{ 0, -0.6, -1 };
-var pitch: f32 = 0.3;
+var camera_pos = [3]f32{ 0, -0.46681779, -2.5830276 };
+var pitch: f32 = -1.4167554;
 var yaw: f32 = 0;
 var roll: f32 = 0;
 
@@ -97,5 +97,5 @@ fn drawLane() void {
     gl.bindTexture(gl.TEXTURE_2D, lane_texture);
     lane_program.setUniform(.texture, 0);
 
-    drawQuad(lane_program, -0.5, 0, 1, -10); // y is used as z in shader
+    drawQuad(lane_program, -0.5, 0, 1, 25);
 }

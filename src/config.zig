@@ -4,8 +4,8 @@ const vfs = @import("vfs.zig");
 const game = @import("game.zig");
 const input = @import("input.zig");
 
-pub var width: u16 = 640;
-pub var height: u16 = 480;
+pub var width: u16 = 800;
+pub var height: u16 = 450;
 
 pub var joystick_name: ?[]const u8 = null;
 pub var joystick_vol_l: ?u8 = null;
