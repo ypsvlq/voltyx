@@ -1,43 +1,51 @@
 const std = @import("std");
 const glfw = @import("mach-glfw");
 const game = @import("game.zig");
-const input = @import("input.zig");
-const text = @import("text.zig");
 
-var scale: f32 = 1;
+pub var scale: f32 = 1;
+var last_state = game.State.song_select;
 
 pub fn init() !void {
     scale = game.window.getContentScale().y_scale;
     game.window.setContentScaleCallback(scaleCallback);
+
+    try @import("ui/song_select.zig").init();
 }
 
 fn scaleCallback(_: glfw.Window, _: f32, y_scale: f32) void {
     scale = y_scale;
 }
 
-fn scaleInt(comptime T: type, value: T) T {
+pub fn scaleInt(comptime T: type, value: T) T {
     const float: f32 = @floatFromInt(value);
     return @intFromFloat(float * scale);
 }
 
-pub fn drawText() !void {
-    const x = 10;
-    var y: u16 = 10;
+const VTable = struct {
+    init: *const fn () anyerror!void,
+    deinit: *const fn () anyerror!void,
+    draw: *const fn () anyerror!void,
+};
 
-    try text.setSize(scaleInt(u32, 32));
-    const height: u16 = @intCast(text.getLineHeight());
+fn vtable(comptime namespace: type) VTable {
+    return .{ .init = namespace.init, .deinit = namespace.deinit, .draw = namespace.draw };
+}
 
-    var iter = input.state.buttons.iterator();
-    while (iter.next()) |button| {
-        try text.draw(@tagName(button), x, y);
-        y += height;
+fn stateVTable(state: game.State) VTable {
+    return switch (state) {
+        .song_select => vtable(@import("ui/song_select.zig")),
+        .ingame => vtable(@import("ui/ingame.zig")),
+    };
+}
+
+pub fn draw() !void {
+    const namespace = stateVTable(game.state);
+
+    if (game.state != last_state) {
+        try stateVTable(last_state).deinit();
+        try namespace.init();
+        last_state = game.state;
     }
 
-    for (input.state.lasers, [2][]const u8{ "vol-l", "vol-r" }) |laser, name| {
-        if (laser != 0) {
-            const laser_text = try std.fmt.allocPrint(game.temp_allocator, "{s} {s}", .{ name, if (laser < 0) "left" else "right" });
-            try text.draw(laser_text, x, y);
-            y += height;
-        }
-    }
+    try namespace.draw();
 }

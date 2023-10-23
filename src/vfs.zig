@@ -37,6 +37,10 @@ pub fn openFile(path: []const u8) !fs.File {
     return forEachDir("openFile", .{ path, .{} });
 }
 
+pub fn openIterableDir(path: []const u8) !fs.IterableDir {
+    return forEachDir("openIterableDir", .{ path, .{} });
+}
+
 pub fn absolutePath(path: []const u8) ![:0]u8 {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const realpath = try forEachDir("realpath", .{ path, &buffer });
@@ -45,6 +49,14 @@ pub fn absolutePath(path: []const u8) ![:0]u8 {
 
 pub fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     const file = try openFile(path);
+    defer file.close();
+    const buf = try allocator.alloc(u8, try file.getEndPos());
+    try file.reader().readNoEof(buf);
+    return buf;
+}
+
+pub fn readFileAt(allocator: std.mem.Allocator, dir: fs.Dir, path: []const u8) ![]u8 {
+    const file = try dir.openFile(path, .{});
     defer file.close();
     const buf = try allocator.alloc(u8, try file.getEndPos());
     try file.reader().readNoEof(buf);

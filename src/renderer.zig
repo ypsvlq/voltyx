@@ -49,10 +49,12 @@ fn sizeCallback(_: glfw.Window, width_: i32, height_: i32) void {
 pub fn draw() !void {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    drawLane();
+    if (game.state == .ingame) {
+        drawLane();
+    }
 
     gl.enable(gl.BLEND);
-    try ui.drawText();
+    try ui.draw();
     gl.disable(gl.BLEND);
 
     game.window.swapBuffers();

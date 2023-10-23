@@ -63,10 +63,10 @@ fn loadChar(char: u21, size: u16) !RenderedChar {
     };
 }
 
-pub fn draw(text: []const u8, start_x: u16, start_y: u16) !void {
+pub fn draw(text: []const u8, start_x: u16, start_y: u16, color: [3]f32) !u16 {
     program.use();
     program.setUniform(.projection, &renderer.ortho);
-    program.setUniform(.color, [3]f32{ 1, 1, 1 });
+    program.setUniform(.color, color);
 
     const size = face.size().metrics().y_ppem;
 
@@ -96,6 +96,8 @@ pub fn draw(text: []const u8, start_x: u16, start_y: u16) !void {
 
         x += glyph.advance;
     }
+
+    return @intFromFloat(x);
 }
 
 pub fn setSize(size: u32) !void {

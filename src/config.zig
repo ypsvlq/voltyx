@@ -28,21 +28,21 @@ const section_handlers = std.ComptimeStringMap(Handlers, .{
     .{ "joystick", .{ .load = input.joystickConfigLoad, .save = input.joystickConfigSave } },
 });
 
-fn set(comptime T: type, ptr: anytype, value: []const u8) !void {
+fn set(allocator: std.mem.Allocator, comptime T: type, ptr: anytype, value: []const u8) !void {
     if (T == []const u8) {
-        ptr.* = try game.allocator.dupe(u8, value);
+        ptr.* = try allocator.dupe(u8, value);
         return;
     }
     switch (@typeInfo(T)) {
         .Int => ptr.* = try std.fmt.parseInt(T, value, 10),
         .Float => ptr.* = try std.fmt.parseFloat(T, value),
         .Bool => ptr.* = if (std.mem.eql(u8, value, "true")) true else if (std.mem.eql(u8, value, "false")) false else return error.InvalidBool,
-        .Optional => return set(std.meta.Child(T), ptr, value),
+        .Optional => return set(allocator, std.meta.Child(T), ptr, value),
         .Array => {
             var iter = std.mem.tokenizeScalar(u8, value, ' ');
             for (ptr) |*elem_ptr| {
                 const elem = iter.next() orelse return error.NotEnoughElements;
-                try set(std.meta.Child(T), elem_ptr, elem);
+                try set(allocator, std.meta.Child(T), elem_ptr, elem);
             }
             if (iter.next() != null) return error.ExtraElement;
         },
@@ -51,18 +51,23 @@ fn set(comptime T: type, ptr: anytype, value: []const u8) !void {
     }
 }
 
+pub fn loadEntry(allocator: std.mem.Allocator, comptime T: type, value: anytype, entry: Ini.Entry) !void {
+    const info = @typeInfo(T).Struct;
+    const fields = if (info.fields.len > 0) info.fields else info.decls;
+    inline for (fields) |field| {
+        if (std.mem.eql(u8, field.name, entry.key)) {
+            const ptr = &@field(value, field.name);
+            const FieldType = @TypeOf(ptr.*);
+            return set(allocator, FieldType, ptr, entry.value);
+        }
+    }
+    return error.UnknownKey;
+}
+
 fn process(iter: *Ini) !void {
-    next: while (try iter.next()) |entry| {
+    while (try iter.next()) |entry| {
         if (iter.section.len == 0) {
-            inline for (@typeInfo(@This()).Struct.decls) |decl| {
-                if (std.mem.eql(u8, decl.name, entry.key)) {
-                    const ptr = &@field(@This(), decl.name);
-                    const T = @TypeOf(ptr.*);
-                    try set(T, ptr, entry.value);
-                    continue :next;
-                }
-            }
-            return error.UnknownKey;
+            try loadEntry(game.allocator, @This(), @This(), entry);
         } else {
             const handler = section_handlers.get(iter.section) orelse return error.UnknownSection;
             try handler.load(entry.key, entry.value);

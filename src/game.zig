@@ -8,6 +8,13 @@ const text = @import("text.zig");
 const ui = @import("ui.zig");
 const audio = @import("audio.zig");
 
+pub const State = enum {
+    song_select,
+    ingame,
+};
+
+pub var state = State.song_select;
+
 pub const allocator = std.heap.c_allocator;
 
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
