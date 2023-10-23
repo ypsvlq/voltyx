@@ -60,7 +60,7 @@ pub fn init() !void {
     defer dir.close();
 
     var iter = dir.iterateAssumeFirstIteration();
-    while (try iter.next()) |entry| {
+    next: while (try iter.next()) |entry| {
         var song_dir = try dir.dir.openDir(entry.name, .{});
         defer song_dir.close();
 
@@ -80,7 +80,7 @@ pub fn init() !void {
         for (song.charts) |chart| {
             if (chart.level != 0) {
                 try songs.append(song);
-                continue;
+                continue :next;
             }
         }
 
@@ -138,7 +138,8 @@ pub fn draw() !void {
             const chart = song.charts[chosen_difficulty];
             const difficulty = difficulties.get(chart.difficulty).?;
             const difficulty_str = try std.fmt.allocPrint(game.temp_allocator, "{s} {}", .{ difficulty.name, chart.level });
-            _ = try text.draw(difficulty_str, x + 50, y, difficulty.color);
+            x += ui.scaleInt(u16, 25);
+            _ = try text.draw(difficulty_str, x, y, difficulty.color);
         } else {
             _ = try text.draw(song.info.title, x, y, .{ 0.7, 0.7, 0.7 });
         }
