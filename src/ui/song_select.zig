@@ -64,14 +64,27 @@ pub fn init() !void {
         var song_dir = try dir.dir.openDir(entry.name, .{});
         defer song_dir.close();
 
-        const bytes = try vfs.readFileAt(game.temp_allocator, song_dir, "info.txt");
+        const bytes = vfs.readFileAt(game.temp_allocator, song_dir, "info.txt") catch |err| switch (err) {
+            error.FileNotFound => {
+                std.log.warn("{s} does not contain info.txt", .{entry.name});
+                continue;
+            },
+            else => return err,
+        };
         var ini = Ini{ .bytes = bytes };
         const song = loadInfo(&ini, entry.name) catch |err| {
             std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
             continue;
         };
 
-        try songs.append(song);
+        for (song.charts) |chart| {
+            if (chart.level != 0) {
+                try songs.append(song);
+                continue;
+            }
+        }
+
+        std.log.warn("{s} has no charts", .{entry.name});
     }
 }
 
