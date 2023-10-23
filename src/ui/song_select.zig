@@ -54,8 +54,6 @@ var arena_instance = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const arena = arena_instance.allocator();
 
 var songs = std.ArrayList(Song).init(arena);
-var cur_song: usize = 0;
-var cur_difficulty: u8 = 3;
 
 pub fn init() !void {
     var dir = try vfs.openIterableDir("songs");
@@ -103,6 +101,9 @@ pub fn deinit() !void {
     _ = arena_instance.reset(.free_all);
 }
 
+var cur_song: usize = 0;
+var cur_difficulty: u2 = 3;
+
 pub fn draw() !void {
     const height: u16 = @intCast(text.getLineHeight());
     try text.setSize(ui.scaleInt(u32, 24));
@@ -112,7 +113,17 @@ pub fn draw() !void {
         var x: u16 = 10;
         if (i == cur_song) {
             x = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
-            const chart = song.charts[cur_difficulty];
+
+            var chosen_difficulty = cur_difficulty;
+            while (song.charts[chosen_difficulty].level == 0) {
+                if (cur_difficulty >= 2) {
+                    chosen_difficulty -%= 1;
+                } else {
+                    chosen_difficulty +%= 1;
+                }
+            }
+
+            const chart = song.charts[chosen_difficulty];
             const difficulty = difficulties.get(chart.difficulty).?;
             const difficulty_str = try std.fmt.allocPrint(game.temp_allocator, "{s} {}", .{ difficulty.name, chart.level });
             _ = try text.draw(difficulty_str, x + 50, y, difficulty.color);
