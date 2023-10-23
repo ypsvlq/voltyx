@@ -100,10 +100,9 @@ pub fn draw(text: []const u8, start_x: u16, start_y: u16, color: [3]f32) !u16 {
     return @intFromFloat(x);
 }
 
+pub var height: u16 = undefined;
+
 pub fn setSize(size: u32) !void {
     try face.setPixelSizes(size, size);
-}
-
-pub fn getLineHeight() c_long {
-    return face.size().metrics().height >> 6;
+    height = @intCast(face.size().metrics().height >> 6);
 }

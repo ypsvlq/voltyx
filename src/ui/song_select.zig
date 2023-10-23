@@ -118,7 +118,6 @@ var cur_song: usize = 0;
 var cur_difficulty: u2 = 3;
 
 pub fn draw() !void {
-    const height: u16 = @intCast(text.getLineHeight());
     try text.setSize(ui.scaleInt(u32, 24));
 
     var y: u16 = 10;
@@ -143,7 +142,7 @@ pub fn draw() !void {
         } else {
             _ = try text.draw(song.info.title, x, y, .{ 0.7, 0.7, 0.7 });
         }
-        y += height;
+        y += text.height;
     }
 
     if (input.state.buttons.contains(.start)) {
