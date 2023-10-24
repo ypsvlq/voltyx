@@ -1,4 +1,5 @@
 const std = @import("std");
+const glfw = @import("mach-glfw");
 const Ini = @import("../Ini.zig");
 const vfs = @import("../vfs.zig");
 const config = @import("../config.zig");
@@ -116,6 +117,7 @@ pub fn deinit() !void {
 
 var cur_song: usize = 0;
 var cur_difficulty: u2 = 3;
+var last_laser_tick: [2]f64 = .{ 0, 0 };
 
 pub fn draw() !void {
     try text.setSize(ui.scaleInt(u32, 24));
@@ -148,5 +150,35 @@ pub fn draw() !void {
 
     if (input.state.buttons.contains(.start)) {
         game.state = .ingame;
+    }
+
+    var lasers: [2]i8 = .{ 0, 0 };
+    for (input.state.lasers, &last_laser_tick, &lasers) |laser, *tick, *output| {
+        if (laser != 0) {
+            if (glfw.getTime() - tick.* > 0.01 / @abs(laser)) {
+                tick.* = glfw.getTime();
+                output.* = if (laser > 0) 1 else -1;
+            }
+        }
+    }
+
+    if (lasers[0] > 0) {
+        cur_difficulty +%= 1;
+    } else if (lasers[0] < 0) {
+        cur_difficulty -%= 1;
+    }
+
+    if (lasers[1] > 0) {
+        if (cur_song == songs.items.len - 1) {
+            cur_song = 0;
+        } else {
+            cur_song += 1;
+        }
+    } else if (lasers[1] < 0) {
+        if (cur_song == 0) {
+            cur_song = songs.items.len - 1;
+        } else {
+            cur_song -= 1;
+        }
     }
 }

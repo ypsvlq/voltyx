@@ -70,10 +70,10 @@ pub fn keyConfigSave(writer: std.fs.File.Writer) !void {
 
 fn mapLaserKey(laser: KeyAction.Laser) struct { *f32, f32 } {
     return switch (laser) {
-        .vol_l_left => .{ &state.lasers[0], -1 },
-        .vol_l_right => .{ &state.lasers[0], 1 },
-        .vol_r_left => .{ &state.lasers[1], -1 },
-        .vol_r_right => .{ &state.lasers[1], 1 },
+        .vol_l_left => .{ &state.lasers[0], -0.05 },
+        .vol_l_right => .{ &state.lasers[0], 0.05 },
+        .vol_r_left => .{ &state.lasers[1], -0.05 },
+        .vol_r_right => .{ &state.lasers[1], 0.05 },
     };
 }
 
