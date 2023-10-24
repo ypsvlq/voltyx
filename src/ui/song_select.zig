@@ -57,6 +57,8 @@ const arena = arena_instance.allocator();
 var songs = std.ArrayList(Song).init(arena);
 
 pub fn init() !void {
+    if (songs.items.len > 0) return;
+
     var dir = try vfs.openIterableDir("songs");
     defer dir.close();
 
@@ -110,10 +112,7 @@ fn loadInfo(iter: *Ini, name: []const u8) !Song {
     return song;
 }
 
-pub fn deinit() !void {
-    songs.clearAndFree();
-    _ = arena_instance.reset(.free_all);
-}
+pub fn deinit() !void {}
 
 var cur_song: usize = 0;
 var cur_difficulty: u2 = 3;
