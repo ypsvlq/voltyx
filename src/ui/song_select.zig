@@ -15,7 +15,7 @@ const Song = struct {
     const Info = struct {
         title: []const u8 = "unknown",
         artist: []const u8 = "unknown",
-        bpm: f32 = 0,
+        bpm: []const u8 = "0",
         preview: f32 = 0,
     };
 
@@ -119,14 +119,12 @@ var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };
 
 pub fn draw() !void {
-    try text.setSize(ui.scaleInt(u32, 24));
-
     var y: u16 = 10;
     for (songs.items, 0..) |song, i| {
         var x: u16 = 10;
-        if (i == cur_song) {
-            x = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
+        try ui.setTextSize(24);
 
+        if (i == cur_song) {
             var chosen_difficulty = cur_difficulty;
             while (song.charts[chosen_difficulty].level == 0) {
                 if (cur_difficulty >= 2) {
@@ -139,8 +137,16 @@ pub fn draw() !void {
             const chart = song.charts[chosen_difficulty];
             const difficulty = difficulties.get(chart.difficulty).?;
             const difficulty_str = try std.fmt.allocPrint(game.temp_allocator, "{s} {}", .{ difficulty.name, chart.level });
+            const info_str = try std.fmt.allocPrint(game.temp_allocator, "artist: {s}    bpm: {s}    effector: {s}    illustrator: {s}", .{ song.info.artist, song.info.bpm, chart.effector, chart.illustrator });
+
+            x = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
             x += ui.scaleInt(u16, 25);
             _ = try text.draw(difficulty_str, x, y, difficulty.color);
+
+            x = 10;
+            y += text.height;
+            try ui.setTextSize(18);
+            _ = try text.draw(info_str, x, y, .{ 1, 1, 1 });
         } else {
             _ = try text.draw(song.info.title, x, y, .{ 0.7, 0.7, 0.7 });
         }

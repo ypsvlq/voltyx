@@ -5,7 +5,7 @@ const text = @import("../text.zig");
 const input = @import("../input.zig");
 
 pub fn init() !void {
-    try text.setSize(ui.scaleInt(u32, 32));
+    try ui.setTextSize(32);
 }
 
 pub fn deinit() !void {}

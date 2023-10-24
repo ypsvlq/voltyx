@@ -1,6 +1,7 @@
 const std = @import("std");
 const glfw = @import("mach-glfw");
 const game = @import("game.zig");
+const text = @import("text.zig");
 
 pub var scale: f32 = 1;
 var last_state = game.State.song_select;
@@ -48,4 +49,8 @@ pub fn draw() !void {
     }
 
     try namespace.draw();
+}
+
+pub fn setTextSize(size: u32) !void {
+    return text.setSize(scaleInt(u32, size));
 }
