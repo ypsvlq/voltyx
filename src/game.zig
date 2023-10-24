@@ -44,6 +44,7 @@ pub fn main() !void {
     try text.init();
     try ui.init();
     try audio.init();
+    input.initJoystickLasers();
 
     if (config.song) |song| {
         try audio.play(song);

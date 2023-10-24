@@ -197,3 +197,17 @@ fn joystickCallback(joystick: glfw.Joystick, event: glfw.Joystick.Event) void {
         }
     }
 }
+
+pub fn initJoystickLasers() void {
+    if (active_joystick) |joystick| {
+        const axes = joystick.getAxes() orelse return;
+        if (config.joystick_vol_l) |index| {
+            if (index < axes.len)
+                last_joystick_state.lasers[0] = axes[index];
+        }
+        if (config.joystick_vol_r) |index| {
+            if (index < axes.len)
+                last_joystick_state.lasers[1] = axes[index];
+        }
+    }
+}
