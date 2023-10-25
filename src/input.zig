@@ -30,6 +30,15 @@ pub fn init(window: glfw.Window) !void {
             joystickCallback(joystick, .connected);
         }
     }
+
+    if (keymap.count() == 0) {
+        keymap.put(.enter, .{ .button = .start });
+        keymap.put(.escape, .{ .button = .back });
+        keymap.put(.left, .{ .laser = .vol_l_left });
+        keymap.put(.right, .{ .laser = .vol_l_right });
+        keymap.put(.up, .{ .laser = .vol_r_left });
+        keymap.put(.down, .{ .laser = .vol_r_right });
+    }
 }
 
 const KeyAction = union(enum) {
