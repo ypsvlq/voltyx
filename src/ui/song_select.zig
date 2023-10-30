@@ -7,10 +7,13 @@ const game = @import("../game.zig");
 const ui = @import("../ui.zig");
 const text = @import("../text.zig");
 const input = @import("../input.zig");
+const audio = @import("../audio.zig");
 
 const Song = struct {
+    name: []const u8,
     info: Info = .{},
     charts: [4]Chart = .{.{}} ** 4,
+    audio: [4]u8 = undefined,
 
     const Info = struct {
         title: []const u8 = "unknown",
@@ -92,7 +95,7 @@ pub fn init() !void {
 }
 
 fn loadInfo(iter: *Ini, name: []const u8) !Song {
-    var song = Song{};
+    var song = Song{ .name = try arena.dupe(u8, name) };
     while (try iter.next()) |entry| {
         if (iter.section.len == 0) {
             try config.loadEntry(arena, Song.Info, &song.info, entry);
@@ -134,6 +137,13 @@ pub fn draw() !void {
                 }
             }
 
+            if (input.state.buttons.contains(.start)) {
+                game.state = .ingame;
+                const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/1.opus", .{song.name});
+                try audio.play(path);
+                return;
+            }
+
             const chart = song.charts[chosen_difficulty];
             const difficulty = difficulties.get(chart.difficulty).?;
             const difficulty_str = try std.fmt.allocPrint(game.temp_allocator, "{s} {}", .{ difficulty.name, chart.level });
@@ -151,10 +161,6 @@ pub fn draw() !void {
             _ = try text.draw(song.info.title, x, y, .{ 0.7, 0.7, 0.7 });
         }
         y += text.height;
-    }
-
-    if (input.state.buttons.contains(.start)) {
-        game.state = .ingame;
     }
 
     var lasers: [2]i8 = .{ 0, 0 };

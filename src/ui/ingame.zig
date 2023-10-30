@@ -3,6 +3,7 @@ const game = @import("../game.zig");
 const ui = @import("../ui.zig");
 const text = @import("../text.zig");
 const input = @import("../input.zig");
+const audio = @import("../audio.zig");
 
 pub fn init() !void {
     try ui.setTextSize(32);
@@ -30,5 +31,6 @@ pub fn draw() !void {
 
     if (input.state.buttons.contains(.back)) {
         game.state = .song_select;
+        try audio.stop();
     }
 }

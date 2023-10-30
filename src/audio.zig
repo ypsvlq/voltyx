@@ -6,17 +6,12 @@ const vfs = @import("vfs.zig");
 const log = std.log.scoped(.audio);
 
 var context: sysaudio.Context = undefined;
-var device: sysaudio.Device = undefined;
 var player: sysaudio.Player = undefined;
 var samples: []f32 = &.{};
 var i: usize = 0;
 
 pub fn init() !void {
     context = try sysaudio.Context.init(null, game.allocator, .{ .app_name = "Voltyx" });
-    try context.refresh();
-
-    device = context.defaultDevice(.playback) orelse return error.NoDevice;
-    player = try context.createPlayer(device, writeFn, .{ .sample_rate = 48000, .media_role = .game });
 }
 
 fn writeFn(_: ?*anyopaque, frame_count_max: usize) void {
@@ -33,6 +28,10 @@ fn writeFn(_: ?*anyopaque, frame_count_max: usize) void {
 }
 
 pub fn play(path: []const u8) !void {
+    try context.refresh();
+    const device = context.defaultDevice(.playback) orelse return error.NoDevice;
+    player = try context.createPlayer(device, writeFn, .{ .sample_rate = 48000, .media_role = .game });
+
     if (samples.len > 0) {
         i = 0;
         game.allocator.free(samples);
@@ -44,4 +43,8 @@ pub fn play(path: []const u8) !void {
     const decoded = try Opus.decodeStream(game.allocator, std.io.StreamSource{ .file = file });
     samples = decoded.samples;
     try player.start();
+}
+
+pub fn stop() !void {
+    player.deinit();
 }
