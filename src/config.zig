@@ -15,8 +15,6 @@ pub var joystick_axes = [2]u8{ 0, 1 };
 pub var left_color = [3]f32{ 0.11372549, 0.8980392, 0.9254902 };
 pub var right_color = [3]f32{ 0.96862745, 0.38039216, 0.76470589 };
 
-pub var song: ?[]const u8 = null;
-
 const Handlers = struct {
     load: *const fn ([]const u8, []const u8) anyerror!void,
     save: *const fn (std.fs.File.Writer) anyerror!void,

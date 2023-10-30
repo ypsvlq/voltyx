@@ -46,10 +46,6 @@ pub fn main() !void {
     try audio.init();
     input.initJoystickLasers();
 
-    if (config.song) |song| {
-        try audio.play(song);
-    }
-
     while (!window.shouldClose()) {
         _ = arena.reset(.retain_capacity);
         try renderer.draw();
