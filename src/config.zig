@@ -10,8 +10,7 @@ pub var height: u16 = 450;
 pub var maximized: bool = false;
 
 pub var joystick_name: ?[]const u8 = null;
-pub var joystick_vol_l: ?u8 = null;
-pub var joystick_vol_r: ?u8 = null;
+pub var joystick_axes = [2]u8{ 0, 1 };
 
 pub var left_color = [3]f32{ 0.11372549, 0.8980392, 0.9254902 };
 pub var right_color = [3]f32{ 0.96862745, 0.38039216, 0.76470589 };

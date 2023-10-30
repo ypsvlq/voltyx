@@ -149,15 +149,7 @@ pub fn updateJoystick() void {
             }
         }
 
-        const axes = joystick.getAxes() orelse return;
-        if (config.joystick_vol_l) |index| {
-            if (index < axes.len)
-                new_joystick_state.lasers[0] = axes[index];
-        }
-        if (config.joystick_vol_r) |index| {
-            if (index < axes.len)
-                new_joystick_state.lasers[1] = axes[index];
-        }
+        processJoystickLasers(joystick, &new_joystick_state.lasers) catch return;
 
         for (&state.lasers, &joystick_laser_flags, new_joystick_state.lasers, last_joystick_state.lasers) |*out, *flag, new, last| {
             if (new != last) {
@@ -176,6 +168,15 @@ pub fn updateJoystick() void {
         }
 
         last_joystick_state = new_joystick_state;
+    }
+}
+
+fn processJoystickLasers(joystick: glfw.Joystick, lasers: *[2]f32) !void {
+    const axes = joystick.getAxes() orelse return error.Unexpected;
+    for (config.joystick_axes, lasers) |index, *laser| {
+        if (index < axes.len) {
+            laser.* = axes[index];
+        }
     }
 }
 
@@ -209,14 +210,6 @@ fn joystickCallback(joystick: glfw.Joystick, event: glfw.Joystick.Event) void {
 
 pub fn initJoystickLasers() void {
     if (active_joystick) |joystick| {
-        const axes = joystick.getAxes() orelse return;
-        if (config.joystick_vol_l) |index| {
-            if (index < axes.len)
-                last_joystick_state.lasers[0] = axes[index];
-        }
-        if (config.joystick_vol_r) |index| {
-            if (index < axes.len)
-                last_joystick_state.lasers[1] = axes[index];
-        }
+        processJoystickLasers(joystick, &last_joystick_state.lasers) catch return;
     }
 }
