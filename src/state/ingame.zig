@@ -64,7 +64,7 @@ pub fn draw2D() !void {
 
     for (input.state.lasers, [2][]const u8{ "vol-l", "vol-r" }) |laser, name| {
         if (laser != 0) {
-            const laser_text = try std.fmt.allocPrint(game.temp_allocator, "{s} {s}", .{ name, if (laser < 0) "left" else "right" });
+            const laser_text = try game.format("{s} {s}", .{ name, if (laser < 0) "left" else "right" });
             _ = try text.draw(laser_text, x, y, .{ 1, 1, 1 });
             y += text.height;
         }

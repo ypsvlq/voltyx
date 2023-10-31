@@ -151,7 +151,7 @@ pub fn update() !void {
         const song = songs.items[cur_song];
         const index = song.getIndex(cur_difficulty);
 
-        const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/{c}.opus", .{ song.name, song.audio[index] });
+        const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.audio[index] });
         try audio.play(path);
 
         game.state = .ingame;
@@ -203,8 +203,8 @@ pub fn draw2D() !void {
 
             const chart = song.charts[chosen_difficulty];
             const difficulty = difficulties.get(chart.difficulty).?;
-            const difficulty_str = try std.fmt.allocPrint(game.temp_allocator, "{s} {}", .{ difficulty.name, chart.level });
-            const info_str = try std.fmt.allocPrint(game.temp_allocator, "artist: {s}    bpm: {s}    effector: {s}    illustrator: {s}", .{ song.info.artist, song.info.bpm, chart.effector, chart.illustrator });
+            const difficulty_str = try game.format("{s} {}", .{ difficulty.name, chart.level });
+            const info_str = try game.format("artist: {s}    bpm: {s}    effector: {s}    illustrator: {s}", .{ song.info.artist, song.info.bpm, chart.effector, chart.illustrator });
 
             x = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
             x += ui.scaleInt(u16, 25);
@@ -231,7 +231,7 @@ fn loadJacket(song: Song, difficulty: u2) !u32 {
     var jackets: [4]u32 = undefined;
     for (song.charts, song.jacket, &jackets) |chart, index, *out| {
         if (chart.level != 0) {
-            const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/{c}.png", .{ song.name, index });
+            const path = try game.format("songs/{s}/{c}.png", .{ song.name, index });
             out.* = try glw.loadPNG(path);
         }
     }
