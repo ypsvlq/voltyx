@@ -103,10 +103,13 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
 }
 
 pub fn save() !void {
-    const scale = game.window.getContentScale();
-    width = @intFromFloat(renderer.width / scale.x_scale);
-    height = @intFromFloat(renderer.height / scale.y_scale);
     maximized = (game.window.getAttrib(.maximized) == 1);
+
+    if (!maximized) {
+        const scale = game.window.getContentScale();
+        width = @intFromFloat(renderer.width / scale.x_scale);
+        height = @intFromFloat(renderer.height / scale.y_scale);
+    }
 
     const file = try vfs.createFile("config.ini");
     defer file.close();
