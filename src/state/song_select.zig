@@ -63,8 +63,6 @@ const arena = arena_instance.allocator();
 var songs = std.ArrayList(Song).init(arena);
 
 pub fn init() !void {
-    if (songs.items.len > 0) return;
-
     var dir = try vfs.openIterableDir("songs");
     defer dir.close();
 
@@ -142,7 +140,7 @@ var cur_song: usize = 0;
 var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };
 
-pub fn draw() !void {
+pub fn draw2D() !void {
     var y: u16 = 10;
     for (songs.items, 0..) |song, i| {
         var x: u16 = 10;
@@ -166,7 +164,7 @@ pub fn draw() !void {
             }
 
             const jacket = try loadJacket(song, chosen_difficulty);
-            renderer.drawQuad2D(jacket, renderer.width - 275, renderer.height - 275, 250, 250);
+            ui.drawImage(jacket, renderer.width - 275, renderer.height - 275, 250, 250);
 
             const chart = song.charts[chosen_difficulty];
             const difficulty = difficulties.get(chart.difficulty).?;

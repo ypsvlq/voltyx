@@ -18,7 +18,8 @@ pub const State = enum {
         init: Fn,
         enter: Fn,
         leave: Fn,
-        draw: Fn,
+        draw3D: Fn,
+        draw2D: Fn,
     };
 
     fn empty() !void {}
