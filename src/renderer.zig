@@ -1,12 +1,9 @@
 const std = @import("std");
 const glfw = @import("mach-glfw");
-const img = @import("zigimg");
 const gl = @import("gl.zig");
 const glw = @import("glw.zig");
 const game = @import("game.zig");
-const vfs = @import("vfs.zig");
 const config = @import("config.zig");
-const ui = @import("ui.zig");
 
 pub var width: f32 = undefined;
 pub var height: f32 = undefined;
@@ -60,7 +57,7 @@ pub fn draw() !void {
     }
 
     gl.enable(gl.BLEND);
-    try ui.draw();
+    try game.state.vtable().draw();
     gl.disable(gl.BLEND);
 
     game.window.swapBuffers();

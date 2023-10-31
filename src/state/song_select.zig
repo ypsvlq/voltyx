@@ -138,8 +138,6 @@ fn loadInfo(iter: *Ini, name: []const u8) !Song {
     return song;
 }
 
-pub fn deinit() !void {}
-
 var cur_song: usize = 0;
 var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };

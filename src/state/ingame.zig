@@ -5,11 +5,9 @@ const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
 
-pub fn init() !void {
+pub fn enter() !void {
     try ui.setTextSize(32);
 }
-
-pub fn deinit() !void {}
 
 pub fn draw() !void {
     const x = 10;
