@@ -31,6 +31,12 @@ const Song = struct {
         effector: []const u8 = "unknown",
         illustrator: []const u8 = "unknown",
     };
+
+    fn getIndex(self: Song, target_difficulty: u2) u2 {
+        var difficulty = target_difficulty;
+        while (self.charts[difficulty].level == 0) difficulty -%= 1;
+        return difficulty;
+    }
 };
 
 const Difficulty = struct {
@@ -140,49 +146,16 @@ var cur_song: usize = 0;
 var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };
 
-pub fn draw2D() !void {
-    var y: u16 = 10;
-    for (songs.items, 0..) |song, i| {
-        var x: u16 = 10;
-        try ui.setTextSize(24);
+pub fn update() !void {
+    if (input.state.buttons.contains(.start)) {
+        const song = songs.items[cur_song];
+        const index = song.getIndex(cur_difficulty);
 
-        if (i == cur_song) {
-            var chosen_difficulty = cur_difficulty;
-            while (song.charts[chosen_difficulty].level == 0) {
-                if (cur_difficulty >= 2) {
-                    chosen_difficulty -%= 1;
-                } else {
-                    chosen_difficulty +%= 1;
-                }
-            }
+        const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/{c}.opus", .{ song.name, song.audio[index] });
+        try audio.play(path);
 
-            if (input.state.buttons.contains(.start)) {
-                game.state = .ingame;
-                const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/{c}.opus", .{ song.name, song.audio[chosen_difficulty] });
-                try audio.play(path);
-                return;
-            }
-
-            const jacket = try loadJacket(song, chosen_difficulty);
-            ui.drawImage(jacket, renderer.width - 275, renderer.height - 275, 250, 250);
-
-            const chart = song.charts[chosen_difficulty];
-            const difficulty = difficulties.get(chart.difficulty).?;
-            const difficulty_str = try std.fmt.allocPrint(game.temp_allocator, "{s} {}", .{ difficulty.name, chart.level });
-            const info_str = try std.fmt.allocPrint(game.temp_allocator, "artist: {s}    bpm: {s}    effector: {s}    illustrator: {s}", .{ song.info.artist, song.info.bpm, chart.effector, chart.illustrator });
-
-            x = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
-            x += ui.scaleInt(u16, 25);
-            _ = try text.draw(difficulty_str, x, y, difficulty.color);
-
-            x = 10;
-            y += text.height;
-            try ui.setTextSize(18);
-            _ = try text.draw(info_str, x, y, .{ 1, 1, 1 });
-        } else {
-            _ = try text.draw(song.info.title, x, y, .{ 0.7, 0.7, 0.7 });
-        }
-        y += text.height;
+        game.state = .ingame;
+        return;
     }
 
     var lasers: [2]i8 = .{ 0, 0 };
@@ -213,6 +186,38 @@ pub fn draw2D() !void {
         } else {
             cur_song -= 1;
         }
+    }
+}
+
+pub fn draw2D() !void {
+    var y: u16 = 10;
+    for (songs.items, 0..) |song, i| {
+        var x: u16 = 10;
+        try ui.setTextSize(24);
+
+        if (i == cur_song) {
+            const chosen_difficulty = song.getIndex(cur_difficulty);
+
+            const jacket = try loadJacket(song, chosen_difficulty);
+            ui.drawImage(jacket, renderer.width - 275, renderer.height - 275, 250, 250);
+
+            const chart = song.charts[chosen_difficulty];
+            const difficulty = difficulties.get(chart.difficulty).?;
+            const difficulty_str = try std.fmt.allocPrint(game.temp_allocator, "{s} {}", .{ difficulty.name, chart.level });
+            const info_str = try std.fmt.allocPrint(game.temp_allocator, "artist: {s}    bpm: {s}    effector: {s}    illustrator: {s}", .{ song.info.artist, song.info.bpm, chart.effector, chart.illustrator });
+
+            x = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
+            x += ui.scaleInt(u16, 25);
+            _ = try text.draw(difficulty_str, x, y, difficulty.color);
+
+            x = 10;
+            y += text.height;
+            try ui.setTextSize(18);
+            _ = try text.draw(info_str, x, y, .{ 1, 1, 1 });
+        } else {
+            _ = try text.draw(song.info.title, x, y, .{ 0.7, 0.7, 0.7 });
+        }
+        y += text.height;
     }
 }
 

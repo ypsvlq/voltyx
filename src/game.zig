@@ -18,6 +18,7 @@ pub const State = enum {
         init: Fn,
         enter: Fn,
         leave: Fn,
+        update: Fn,
         draw3D: Fn,
         draw2D: Fn,
     };
@@ -91,6 +92,7 @@ pub fn main() !void {
             last_state = state;
         }
 
+        try state.vtable().update();
         try renderer.draw();
         glfw.pollEvents();
         input.updateJoystick();
