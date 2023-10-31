@@ -13,6 +13,11 @@ pub var height: f32 = undefined;
 pub var ortho: [4][4]f32 = undefined;
 pub var perspective: [4][4]f32 = undefined;
 
+var rgb_program: glw.Program(.{
+    .Attrib = enum { vertex },
+    .Uniform = enum { projection, texture },
+}) = undefined;
+
 var lane_program: glw.Program(.{
     .Attrib = enum { vertex },
     .Uniform = enum { projection, view, texture, left_color, right_color },
@@ -32,9 +37,10 @@ pub fn init() !void {
     game.window.setSizeCallback(sizeCallback);
     sizeCallback(game.window, @bitCast(size.width), @bitCast(size.height));
 
-    lane_texture = try glw.loadPNG("textures/lane.png");
+    try rgb_program.compile("shaders/rgb.vert", "shaders/rgb.frag");
     try lane_program.compile("shaders/lane.vert", "shaders/lane.frag");
     lane_program.enableAttribArray(.vertex);
+    lane_texture = try glw.loadPNG("textures/lane.png");
 }
 
 fn sizeCallback(_: glfw.Window, width_: i32, height_: i32) void {
@@ -74,6 +80,17 @@ pub fn drawQuad(program: anytype, x: f32, y: f32, w: f32, h: f32) void {
         0, 2, 3,
     };
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, &indices);
+}
+
+pub fn drawQuad2D(texture: u32, x: f32, y: f32, w: f32, h: f32) void {
+    rgb_program.use();
+    rgb_program.setUniform(.projection, &ortho);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    rgb_program.setUniform(.texture, 0);
+
+    drawQuad(rgb_program, x, y, w, h);
 }
 
 var camera_pos = [3]f32{ 0, -0.46681779, -2.5830276 };

@@ -3,8 +3,10 @@ const glfw = @import("mach-glfw");
 const Ini = @import("../Ini.zig");
 const vfs = @import("../vfs.zig");
 const config = @import("../config.zig");
+const glw = @import("../glw.zig");
 const game = @import("../game.zig");
 const ui = @import("../ui.zig");
+const renderer = @import("../renderer.zig");
 const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
@@ -13,6 +15,7 @@ const Song = struct {
     name: []const u8,
     info: Info = .{},
     charts: [4]Chart = .{.{}} ** 4,
+    jacket: [4]u8 = undefined,
     audio: [4]u8 = undefined,
 
     const Info = struct {
@@ -66,7 +69,7 @@ pub fn init() !void {
     defer dir.close();
 
     var iter = dir.iterateAssumeFirstIteration();
-    next: while (try iter.next()) |entry| {
+    while (try iter.next()) |entry| {
         var song_dir = try dir.dir.openDir(entry.name, .{});
         defer song_dir.close();
 
@@ -78,19 +81,39 @@ pub fn init() !void {
             else => return err,
         };
         var ini = Ini{ .bytes = bytes };
-        const song = loadInfo(&ini, entry.name) catch |err| {
+        var song = loadInfo(&ini, entry.name) catch |err| {
             std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
             continue;
         };
 
-        for (song.charts) |chart| {
+        var has_chart = false;
+        var jacket_index: u8 = '1';
+        var audio_index: u8 = '1';
+        for (song.charts, 0..) |chart, i| {
             if (chart.level != 0) {
-                try songs.append(song);
-                continue :next;
+                has_chart = true;
+
+                const index: u8 = @intCast('1' + i);
+                song.jacket[i] = try accessChartFile(song_dir, ".png", index, &jacket_index);
+                song.audio[i] = try accessChartFile(song_dir, ".opus", index, &audio_index);
             }
         }
 
-        std.log.warn("{s} has no charts", .{entry.name});
+        if (has_chart) {
+            try songs.append(song);
+        } else {
+            std.log.warn("{s} has no charts", .{entry.name});
+        }
+    }
+}
+
+fn accessChartFile(dir: std.fs.Dir, comptime ext: []const u8, index: u8, last_valid_index: *u8) !u8 {
+    if (dir.access(.{index} ++ ext, .{})) {
+        last_valid_index.* = index;
+        return index;
+    } else |err| switch (err) {
+        error.FileNotFound => return last_valid_index.*,
+        else => return err,
     }
 }
 
@@ -139,10 +162,13 @@ pub fn draw() !void {
 
             if (input.state.buttons.contains(.start)) {
                 game.state = .ingame;
-                const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/1.opus", .{song.name});
+                const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/{c}.opus", .{ song.name, song.audio[chosen_difficulty] });
                 try audio.play(path);
                 return;
             }
+
+            const jacket = try loadJacket(song, chosen_difficulty);
+            renderer.drawQuad2D(jacket, renderer.width - 275, renderer.height - 275, 250, 250);
 
             const chart = song.charts[chosen_difficulty];
             const difficulty = difficulties.get(chart.difficulty).?;
@@ -192,4 +218,24 @@ pub fn draw() !void {
             cur_song -= 1;
         }
     }
+}
+
+var jacket_cache = std.StringHashMap([4]u32).init(game.allocator);
+
+fn loadJacket(song: Song, difficulty: u2) !u32 {
+    if (jacket_cache.get(song.name)) |jackets| {
+        return jackets[difficulty];
+    }
+
+    var jackets: [4]u32 = undefined;
+    for (song.charts, song.jacket, &jackets) |chart, index, *out| {
+        if (chart.level != 0) {
+            const path = try std.fmt.allocPrint(game.temp_allocator, "songs/{s}/{c}.png", .{ song.name, index });
+            out.* = try glw.loadPNG(path);
+        }
+    }
+
+    try jacket_cache.put(song.name, jackets);
+
+    return jackets[difficulty];
 }
