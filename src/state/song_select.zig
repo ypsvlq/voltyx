@@ -147,8 +147,9 @@ var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };
 
 pub fn update() !void {
+    const song = songs.items[cur_song];
+
     if (input.state.buttons.contains(.start)) {
-        const song = songs.items[cur_song];
         const index = song.getIndex(cur_difficulty);
 
         const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.audio[index] });
@@ -169,9 +170,11 @@ pub fn update() !void {
     }
 
     if (lasers[0] > 0) {
-        cur_difficulty +%= 1;
+        cur_difficulty = song.getIndex(cur_difficulty);
+        cur_difficulty +|= 1;
     } else if (lasers[0] < 0) {
-        cur_difficulty -%= 1;
+        cur_difficulty = song.getIndex(cur_difficulty);
+        cur_difficulty -|= 1;
     }
 
     if (lasers[1] > 0) {
