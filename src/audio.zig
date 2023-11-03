@@ -12,10 +12,14 @@ var i: usize = 0;
 
 pub fn init() !void {
     context = try sysaudio.Context.init(null, game.allocator, .{ .app_name = "Voltyx" });
+    try context.refresh();
+    const device = context.defaultDevice(.playback) orelse return error.NoDevice;
+    player = try context.createPlayer(device, writeFn, .{ .sample_rate = 48000, .media_role = .game });
+    try player.start();
 }
 
-fn writeFn(_: ?*anyopaque, frame_count_max: usize) void {
-    for (0..frame_count_max) |frame| {
+fn writeFn(_: ?*anyopaque, frames: usize) void {
+    for (0..frames) |frame| {
         for (0..2) |channel| {
             if (i == samples.len) {
                 player.pause() catch log.err("could not pause", .{});
@@ -28,10 +32,6 @@ fn writeFn(_: ?*anyopaque, frame_count_max: usize) void {
 }
 
 pub fn play(path: []const u8) !void {
-    try context.refresh();
-    const device = context.defaultDevice(.playback) orelse return error.NoDevice;
-    player = try context.createPlayer(device, writeFn, .{ .sample_rate = 48000, .media_role = .game });
-
     if (samples.len > 0) {
         i = 0;
         game.allocator.free(samples);
@@ -40,11 +40,11 @@ pub fn play(path: []const u8) !void {
     const file = try vfs.openFile(path);
     defer file.close();
 
-    const decoded = try Opus.decodeStream(game.allocator, std.io.StreamSource{ .file = file });
+    const decoded = try Opus.decodeStream(game.allocator, .{ .file = file });
     samples = decoded.samples;
-    try player.start();
+    try player.play();
 }
 
 pub fn stop() !void {
-    player.deinit();
+    try player.pause();
 }
