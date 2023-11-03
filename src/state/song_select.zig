@@ -193,34 +193,49 @@ pub fn update() !void {
 }
 
 pub fn draw2D() !void {
-    var y: u16 = 10;
-    for (songs.items, 0..) |song, i| {
-        var x: u16 = 10;
-        try ui.setTextSize(24);
+    var visible: u16 = @intFromFloat(renderer.height / (100 * ui.scale));
+    if (visible == 0) return;
+    if (visible % 2 == 0) visible -= 1;
 
-        if (i == cur_song) {
-            const chosen_difficulty = song.getIndex(cur_difficulty);
-
-            const jacket = try loadJacket(song, chosen_difficulty);
-            ui.drawImage(jacket, renderer.width - 275, renderer.height - 275, 250, 250);
-
-            const chart = song.charts[chosen_difficulty];
-            const difficulty = difficulties.get(chart.difficulty).?;
-            const difficulty_str = try game.format("{s} {}", .{ difficulty.name, chart.level });
-            const info_str = try game.format("artist: {s}    bpm: {s}    effector: {s}    illustrator: {s}", .{ song.info.artist, song.info.bpm, chart.effector, chart.illustrator });
-
-            x = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
-            x += ui.scaleInt(u16, 25);
-            _ = try text.draw(difficulty_str, x, y, difficulty.color);
-
-            x = 10;
-            y += text.height;
-            try ui.setTextSize(18);
-            _ = try text.draw(info_str, x, y, .{ 1, 1, 1 });
-        } else {
-            _ = try text.draw(song.info.title, x, y, .{ 0.7, 0.7, 0.7 });
+    var pos = cur_song;
+    for (0..visible / 2) |_| {
+        if (pos == 0) {
+            pos = songs.items.len;
         }
+        pos -= 1;
+    }
+
+    const size = ui.scaleConst(100);
+    var base: u16 = 0;
+    for (0..visible) |_| {
+        const song = songs.items[pos];
+        const index = song.getIndex(cur_difficulty);
+        const chart = song.charts[index];
+
+        const jacket = try loadJacket(song, index);
+        ui.drawImage(jacket, 0, base, size, size);
+
+        const x = size + ui.scaleConst(10);
+        var y = base + ui.scaleConst(5);
+
+        try ui.setTextSize(24);
+        _ = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
         y += text.height;
+
+        try ui.setTextSize(18);
+        _ = try text.draw(song.info.artist, x, y, .{ 1, 1, 1 });
+        y += text.height;
+
+        const difficulty = difficulties.get(chart.difficulty).?;
+        const difficulty_str = try game.format("{}", .{chart.level});
+        try ui.setTextSize(24);
+        _ = try text.draw(difficulty_str, x, y, difficulty.color);
+
+        pos += 1;
+        if (pos == songs.items.len) {
+            pos = 0;
+        }
+        base += size;
     }
 }
 
