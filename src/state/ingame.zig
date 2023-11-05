@@ -24,6 +24,11 @@ pub fn init() !void {
 
 pub fn enter() !void {
     try ui.setTextSize(32);
+
+    lane_program.use();
+    lane_program.setUniform(.left_color, config.left_color);
+    lane_program.setUniform(.right_color, config.right_color);
+    calculateCamera();
 }
 
 var camera_pos = [3]f32{ 0, -0.46681779, -2.5830276 };
@@ -31,12 +36,7 @@ var pitch: f32 = -1.4167554;
 var yaw: f32 = 0;
 var roll: f32 = 0;
 
-pub fn draw3D() !void {
-    lane_program.use();
-    lane_program.setUniform(.projection, &renderer.perspective);
-    lane_program.setUniform(.left_color, config.left_color);
-    lane_program.setUniform(.right_color, config.right_color);
-
+fn calculateCamera() void {
     const rx = glw.rotationX(pitch);
     const ry = glw.rotationY(yaw);
     const rz = glw.rotationZ(roll);
@@ -44,6 +44,11 @@ pub fn draw3D() !void {
     const t = glw.translation(camera_pos);
     const view = glw.transpose(glw.multiply(t, r));
     lane_program.setUniform(.view, &view);
+}
+
+pub fn draw3D() !void {
+    lane_program.use();
+    lane_program.setUniform(.projection, &renderer.perspective);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, lane_texture);
