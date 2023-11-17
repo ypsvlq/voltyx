@@ -7,6 +7,7 @@ const log = std.log.scoped(.audio);
 
 var context: sysaudio.Context = undefined;
 var player: sysaudio.Player = undefined;
+var mutex = std.Thread.Mutex{};
 var samples: []f32 = &.{};
 var i: usize = 0;
 
@@ -19,21 +20,23 @@ pub fn init() !void {
 }
 
 fn writeFn(_: ?*anyopaque, frames: usize) void {
+    mutex.lock();
+    defer mutex.unlock();
+
     for (0..frames) |frame| {
         for (0..2) |channel| {
-            if (i == samples.len) {
-                player.pause() catch log.err("could not pause", .{});
-                return;
-            }
-            player.write(player.channels()[channel], frame, samples[i]);
-            i += 1;
+            const sample = if (i < samples.len) samples[i] else 0;
+            player.write(player.channels()[channel], frame, sample);
+            i +|= 1;
         }
     }
 }
 
 pub fn play(path: []const u8) !void {
+    mutex.lock();
+    defer mutex.unlock();
+
     if (samples.len > 0) {
-        i = 0;
         game.allocator.free(samples);
     }
 
@@ -42,9 +45,13 @@ pub fn play(path: []const u8) !void {
 
     const decoded = try Opus.decodeStream(game.allocator, .{ .file = file });
     samples = decoded.samples;
-    try player.play();
+    i = 0;
 }
 
 pub fn stop() !void {
-    try player.pause();
+    mutex.lock();
+    defer mutex.unlock();
+
+    game.allocator.free(samples);
+    samples = &.{};
 }
