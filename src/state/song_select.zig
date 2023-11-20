@@ -142,6 +142,10 @@ fn loadInfo(iter: *Ini, name: []const u8) !Song {
     return song;
 }
 
+pub fn enter() !void {
+    try playPreview();
+}
+
 var cur_song: usize = 0;
 var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };
@@ -190,6 +194,17 @@ pub fn update() !void {
             cur_song -= 1;
         }
     }
+
+    if (lasers[1] != 0) {
+        try playPreview();
+    }
+}
+
+fn playPreview() !void {
+    const song = songs.items[cur_song];
+    try audio.stop();
+    const path = try game.format("songs/{s}/1.opus", .{song.name});
+    try audio.playLazy(path, song.info.preview, 10);
 }
 
 pub fn draw2D() !void {
