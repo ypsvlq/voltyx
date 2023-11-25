@@ -33,7 +33,12 @@ fn writeFn(_: ?*anyopaque, frames: usize) void {
     }
 }
 
-pub fn play(path: []const u8) !void {
+pub const PlayOptions = struct {
+    start: f32 = 0,
+    length: ?f32 = null,
+};
+
+pub fn play(path: []const u8, options: PlayOptions) !void {
     mutex.lock();
     defer mutex.unlock();
 
@@ -41,9 +46,14 @@ pub fn play(path: []const u8) !void {
     defer file.close();
 
     const decoded = try Opus.decodeStream(game.allocator, .{ .file = file });
+
+    const indices_per_s = 48000 * 2;
+    const start: usize = @intFromFloat(options.start * indices_per_s);
+    const length: usize = if (options.length) |length| @intFromFloat(length * indices_per_s) else decoded.samples.len;
+
     game.allocator.free(samples);
-    samples = decoded.samples;
-    i = 0;
+    samples = decoded.samples[0 .. start + length];
+    i = start;
 }
 
 pub fn stop() !void {
@@ -52,39 +62,4 @@ pub fn stop() !void {
 
     game.allocator.free(samples);
     samples = &.{};
-}
-
-const indices_per_s = 48000 * 2;
-
-pub fn playLazy(path: []const u8, start: f32, length: f32) !void {
-    const path_arg = try game.allocator.dupe(u8, path);
-    const start_arg: usize = @intFromFloat(start * indices_per_s);
-    const length_arg: usize = @intFromFloat(length * indices_per_s);
-
-    const thread = try std.Thread.spawn(.{}, load, .{ path_arg, start_arg, length_arg });
-    thread.detach();
-}
-
-var worker: std.Thread.Id = 0;
-
-fn load(path: []const u8, start: usize, length: usize) !void {
-    const id = std.Thread.getCurrentId();
-    worker = id;
-
-    const file = try vfs.openFile(path);
-    defer file.close();
-    game.allocator.free(path);
-
-    const decoded = try Opus.decodeStream(game.allocator, .{ .file = file });
-
-    mutex.lock();
-    defer mutex.unlock();
-
-    if (worker == id) {
-        game.allocator.free(samples);
-        samples = decoded.samples[0 .. start + length];
-        i = start;
-    } else {
-        game.allocator.free(decoded.samples);
-    }
 }

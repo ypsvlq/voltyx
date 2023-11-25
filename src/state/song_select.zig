@@ -157,7 +157,7 @@ pub fn update() !void {
         const index = song.getIndex(cur_difficulty);
 
         const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.audio[index] });
-        try audio.play(path);
+        try audio.play(path, .{});
 
         game.state = .ingame;
         return;
@@ -202,9 +202,8 @@ pub fn update() !void {
 
 fn playPreview() !void {
     const song = songs.items[cur_song];
-    try audio.stop();
     const path = try game.format("songs/{s}/1.opus", .{song.name});
-    try audio.playLazy(path, song.info.preview, 10);
+    try audio.play(path, .{ .start = song.info.preview, .length = 10 });
 }
 
 pub fn draw2D() !void {
