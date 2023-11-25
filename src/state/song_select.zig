@@ -63,12 +63,15 @@ fn rgb(int: u24) [3]f32 {
     return .{ r / 255, g / 255, b / 255 };
 }
 
+var default_jacket: u32 = undefined;
+
 var arena_instance = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const arena = arena_instance.allocator();
-
 var songs = std.ArrayList(Song).init(arena);
 
 pub fn init() !void {
+    default_jacket = try glw.loadPNG("textures/jacket.png");
+
     var dir = try vfs.openIterableDir("songs");
     defer dir.close();
 
@@ -257,6 +260,8 @@ pub fn draw2D() !void {
 var jacket_cache = std.StringHashMap([4]u32).init(game.allocator);
 
 fn loadJacket(song: Song, difficulty: u2) !u32 {
+    if (@import("builtin").mode == .Debug) return default_jacket;
+
     if (jacket_cache.get(song.name)) |jackets| {
         return jackets[difficulty];
     }
@@ -265,7 +270,10 @@ fn loadJacket(song: Song, difficulty: u2) !u32 {
     for (song.charts, song.jacket, &jackets) |chart, index, *out| {
         if (chart.level != 0) {
             const path = try game.format("songs/{s}/{c}.png", .{ song.name, index });
-            out.* = try glw.loadPNG(path);
+            out.* = glw.loadPNG(path) catch |err| blk: {
+                std.log.err("could not load {s}: {s}", .{ path, @errorName(err) });
+                break :blk default_jacket;
+            };
         }
     }
 
