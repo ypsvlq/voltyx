@@ -201,6 +201,7 @@ pub fn update() !void {
 }
 
 fn playPreview() !void {
+    if (@import("builtin").mode == .Debug) return;
     const song = songs.items[cur_song];
     const path = try game.format("songs/{s}/1.opus", .{song.name});
     try audio.play(path, .{ .start = song.info.preview, .length = 10 });
