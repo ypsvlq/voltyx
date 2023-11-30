@@ -71,6 +71,8 @@ pub fn main() !void {
         .maximized = config.maximized,
     }) orelse return error.WindowCreation;
 
+    window.setInputMode(.cursor, .hidden);
+
     try input.init(window);
     try renderer.init();
     try text.init();
