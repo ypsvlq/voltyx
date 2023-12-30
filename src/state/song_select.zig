@@ -45,23 +45,16 @@ const Difficulty = struct {
 };
 
 const difficulties = std.ComptimeStringMap(Difficulty, .{
-    .{ "NOV", .{ .name = "NOVICE", .color = rgb(0x5A49FB) } },
-    .{ "ADV", .{ .name = "ADVANCED", .color = rgb(0xFBD349) } },
-    .{ "EXH", .{ .name = "EXHAUST", .color = rgb(0xFB494C) } },
-    .{ "MXM", .{ .name = "MAXIMUM", .color = rgb(0xACACAC) } },
-    .{ "INF", .{ .name = "INFINITE", .color = rgb(0xEE65E5) } },
-    .{ "GRV", .{ .name = "GRAVITY", .color = rgb(0xFB8F49) } },
-    .{ "HVN", .{ .name = "HEAVENLY", .color = rgb(0x49C9FB) } },
-    .{ "VVD", .{ .name = "VIVID", .color = rgb(0xFF59CD) } },
-    .{ "XCD", .{ .name = "EXCEED", .color = rgb(0x187FFF) } },
+    .{ "NOV", .{ .name = "NOVICE", .color = ui.rgb(0x5A49FB) } },
+    .{ "ADV", .{ .name = "ADVANCED", .color = ui.rgb(0xFBD349) } },
+    .{ "EXH", .{ .name = "EXHAUST", .color = ui.rgb(0xFB494C) } },
+    .{ "MXM", .{ .name = "MAXIMUM", .color = ui.rgb(0xACACAC) } },
+    .{ "INF", .{ .name = "INFINITE", .color = ui.rgb(0xEE65E5) } },
+    .{ "GRV", .{ .name = "GRAVITY", .color = ui.rgb(0xFB8F49) } },
+    .{ "HVN", .{ .name = "HEAVENLY", .color = ui.rgb(0x49C9FB) } },
+    .{ "VVD", .{ .name = "VIVID", .color = ui.rgb(0xFF59CD) } },
+    .{ "XCD", .{ .name = "EXCEED", .color = ui.rgb(0x187FFF) } },
 });
-
-fn rgb(int: u24) [3]f32 {
-    const r: f32 = @floatFromInt((int & 0xFF0000) >> 16);
-    const g: f32 = @floatFromInt((int & 0xFF00) >> 8);
-    const b: f32 = @floatFromInt(int & 0xFF);
-    return .{ r / 255, g / 255, b / 255 };
-}
 
 var default_jacket: u32 = undefined;
 

@@ -53,3 +53,10 @@ pub fn drawImage(texture: u32, x_: u16, y_: u16, w_: u16, h_: u16) void {
 
     renderer.drawQuad(image_program, x, renderer.height - y - h, w, h);
 }
+
+pub fn rgb(comptime value: comptime_int) [3]f32 {
+    const r: comptime_float = @floatFromInt((value & 0xFF0000) >> 16);
+    const g: comptime_float = @floatFromInt((value & 0xFF00) >> 8);
+    const b: comptime_float = @floatFromInt(value & 0xFF);
+    return .{ r / 255.0, g / 255.0, b / 255.0 };
+}

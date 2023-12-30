@@ -2,6 +2,7 @@ const std = @import("std");
 const Ini = @import("Ini.zig");
 const vfs = @import("vfs.zig");
 const game = @import("game.zig");
+const ui = @import("ui.zig");
 const input = @import("input.zig");
 const renderer = @import("renderer.zig");
 
@@ -12,8 +13,8 @@ pub var maximized: bool = false;
 pub var joystick_name: ?[]const u8 = null;
 pub var joystick_axes = [2]u8{ 0, 1 };
 
-pub var left_color = [3]f32{ 0.11372549, 0.8980392, 0.9254902 };
-pub var right_color = [3]f32{ 0.96862745, 0.38039216, 0.76470589 };
+pub var left_color = ui.rgb(0x1DE5EC);
+pub var right_color = ui.rgb(0xF761C3);
 
 const Handlers = struct {
     load: *const fn ([]const u8, []const u8) anyerror!void,

@@ -14,12 +14,19 @@ var lane_program: glw.Program(.{
     .Uniform = enum { projection, view, texture, left_color, right_color },
 }) = undefined;
 
+var color_program: glw.Program(.{
+    .Attrib = enum { vertex },
+    .Uniform = enum { projection, view, color },
+}) = undefined;
+
 var lane_texture: u32 = undefined;
 
 pub fn init() !void {
     try lane_program.compile("shaders/lane.vert", "shaders/lane.frag");
     lane_program.enableAttribArray(.vertex);
     lane_texture = try glw.loadPNG("textures/lane.png");
+
+    try color_program.compile("shaders/color.vert", "shaders/color.frag");
 }
 
 pub fn enter() !void {
@@ -43,7 +50,26 @@ fn calculateCamera() void {
     const r = glw.multiply(rz, glw.multiply(ry, rx));
     const t = glw.translation(camera_pos);
     const view = glw.transpose(glw.multiply(t, r));
+    lane_program.use();
     lane_program.setUniform(.view, &view);
+    color_program.use();
+    color_program.setUniform(.view, &view);
+}
+
+fn px(value: f32) f32 {
+    return value / 770;
+}
+
+fn laneStart(lane: i32) f32 {
+    return px(@floatFromInt(-269 + (136 * lane)));
+}
+
+fn drawBT(lane: u2, y: f32) void {
+    renderer.drawQuad(color_program, laneStart(lane), y, px(130), 0.25);
+}
+
+fn drawFX(lane: u2, y: f32) void {
+    renderer.drawQuad(color_program, laneStart(lane), y, px(266), 0.25);
 }
 
 pub fn draw3D() !void {
@@ -55,6 +81,21 @@ pub fn draw3D() !void {
     lane_program.setUniform(.texture, 0);
 
     renderer.drawQuad(lane_program, -0.5, 0, 1, 25);
+
+    color_program.use();
+    color_program.setUniform(.projection, &renderer.perspective);
+
+    color_program.setUniform(.color, ui.rgb(0xFF9F01));
+    drawFX(2, 1);
+    drawFX(2, 2);
+    drawFX(0, 3);
+    drawFX(0, 4);
+
+    color_program.setUniform(.color, ui.rgb(0xFFFFFF));
+    drawBT(0, 1);
+    drawBT(1, 2);
+    drawBT(2, 3);
+    drawBT(3, 4);
 }
 
 pub fn draw2D() !void {
