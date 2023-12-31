@@ -65,11 +65,11 @@ fn laneStart(lane: i32) f32 {
 }
 
 fn drawBT(lane: u2, y: f32) void {
-    renderer.drawQuad(color_program, laneStart(lane), y, px(130), 0.25);
+    renderer.drawQuad(color_program, laneStart(lane), y, px(130), px(130));
 }
 
 fn drawFX(lane: u2, y: f32) void {
-    renderer.drawQuad(color_program, laneStart(lane), y, px(266), 0.25);
+    renderer.drawQuad(color_program, laneStart(lane), y, px(266), px(130));
 }
 
 pub fn draw3D() !void {
