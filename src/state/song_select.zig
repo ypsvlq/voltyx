@@ -63,7 +63,7 @@ const arena = arena_instance.allocator();
 var songs = std.ArrayList(Song).init(arena);
 
 pub fn init() !void {
-    default_jacket = try glw.loadPNG("textures/jacket.png");
+    default_jacket = try glw.loadEmbeddedPNG("jacket.png");
 
     var dir = try vfs.openIterableDir("songs");
     defer dir.close();

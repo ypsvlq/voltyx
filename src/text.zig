@@ -8,7 +8,7 @@ const renderer = @import("renderer.zig");
 
 var face: freetype.Face = undefined;
 
-var program: glw.Program(.{
+var program: glw.Program("text", .{
     .Attrib = enum { vertex },
     .Uniform = enum { projection, texture, color },
 }) = undefined;
@@ -16,10 +16,9 @@ var program: glw.Program(.{
 pub fn init() !void {
     const ft = try freetype.Library.init();
 
-    const path = try vfs.absolutePath("fonts/NotoSansJP-Regular.ttf");
-    face = try ft.createFace(path, 0);
+    face = try ft.createFaceMemory(@embedFile("assets/fonts/NotoSansJP-Regular.ttf"), 0);
 
-    try program.compile("shaders/text.vert", "shaders/text.frag");
+    try program.compile();
     program.enableAttribArray(.vertex);
 }
 

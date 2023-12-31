@@ -136,7 +136,7 @@ pub const ProgramVars = struct {
     Uniform: type = enum {},
 };
 
-pub fn Program(comptime vars: ProgramVars) type {
+pub fn Program(comptime name: []const u8, comptime vars: ProgramVars) type {
     const attribs = std.enums.values(vars.Attrib);
     const uniforms = std.enums.values(vars.Uniform);
     return struct {
@@ -146,12 +146,12 @@ pub fn Program(comptime vars: ProgramVars) type {
 
         const Self = @This();
 
-        pub fn compile(self: *Self, vertex_path: []const u8, fragment_path: []const u8) !void {
-            const vertex_bytes = try vfs.readFile(game.temp_allocator, vertex_path);
+        pub fn compile(self: *Self) !void {
+            const vertex_bytes = @embedFile("shaders/" ++ name ++ ".vert");
             const vertex = try compileShader(.vertex, vertex_bytes);
             defer gl.deleteShader(vertex);
 
-            const fragment_bytes = try vfs.readFile(game.temp_allocator, fragment_path);
+            const fragment_bytes = @embedFile("shaders/" ++ name ++ ".frag");
             const fragment = try compileShader(.fragment, fragment_bytes);
             defer gl.deleteShader(fragment);
 
@@ -234,12 +234,8 @@ pub fn createTexture(bytes: [*]const u8, width: usize, height: usize, texture_fo
     return texture;
 }
 
-pub fn loadPNG(path: []const u8) !u32 {
-    const file = try vfs.openFile(path);
-    defer file.close();
-
-    var stream = std.io.StreamSource{ .file = file };
-    const image = try img.png.PNG.readImage(game.temp_allocator, &stream);
+fn createPNGTexture(stream: *std.io.StreamSource) !u32 {
+    const image = try img.png.PNG.readImage(game.temp_allocator, stream);
 
     const format: TextureFormat = switch (image.pixelFormat()) {
         .grayscale8 => .alpha,
@@ -249,4 +245,18 @@ pub fn loadPNG(path: []const u8) !u32 {
     };
 
     return createTexture(image.rawBytes().ptr, image.width, image.height, format);
+}
+
+pub fn loadPNG(path: []const u8) !u32 {
+    const file = try vfs.openFile(path);
+    defer file.close();
+
+    var stream = std.io.StreamSource{ .file = file };
+    return createPNGTexture(&stream);
+}
+
+pub fn loadEmbeddedPNG(comptime path: []const u8) !u32 {
+    const bytes = @embedFile("assets/textures/" ++ path);
+    var stream = std.io.StreamSource{ .const_buffer = std.io.fixedBufferStream(bytes) };
+    return createPNGTexture(&stream);
 }

@@ -9,12 +9,12 @@ const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
 
-var lane_program: glw.Program(.{
+var lane_program: glw.Program("lane", .{
     .Attrib = enum { vertex },
     .Uniform = enum { projection, view, texture, left_color, right_color },
 }) = undefined;
 
-var color_program: glw.Program(.{
+var color_program: glw.Program("color", .{
     .Attrib = enum { vertex },
     .Uniform = enum { projection, view, color },
 }) = undefined;
@@ -22,11 +22,11 @@ var color_program: glw.Program(.{
 var lane_texture: u32 = undefined;
 
 pub fn init() !void {
-    try lane_program.compile("shaders/lane.vert", "shaders/lane.frag");
+    try lane_program.compile();
     lane_program.enableAttribArray(.vertex);
-    lane_texture = try glw.loadPNG("textures/lane.png");
+    lane_texture = try glw.loadEmbeddedPNG("lane.png");
 
-    try color_program.compile("shaders/color.vert", "shaders/color.frag");
+    try color_program.compile();
 }
 
 pub fn enter() !void {

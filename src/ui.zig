@@ -8,7 +8,7 @@ const renderer = @import("renderer.zig");
 
 pub var scale: f32 = 1;
 
-var image_program: glw.Program(.{
+var image_program: glw.Program("image", .{
     .Attrib = enum { vertex },
     .Uniform = enum { projection, texture },
 }) = undefined;
@@ -17,7 +17,7 @@ pub fn init() !void {
     scale = game.window.getContentScale().y_scale;
     game.window.setContentScaleCallback(scaleCallback);
 
-    try image_program.compile("shaders/image.vert", "shaders/image.frag");
+    try image_program.compile();
     image_program.enableAttribArray(.vertex);
 }
 
