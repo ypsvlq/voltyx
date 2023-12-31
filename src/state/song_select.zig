@@ -147,6 +147,8 @@ var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };
 
 pub fn update() !void {
+    if (songs.items.len == 0) return;
+
     const song = songs.items[cur_song];
 
     if (input.state.buttons.contains(.start)) {
@@ -204,6 +206,12 @@ fn playPreview() !void {
 }
 
 pub fn draw2D() !void {
+    if (songs.items.len == 0) {
+        try ui.setTextSize(36);
+        _ = try text.draw("No songs!", 10, 10, .{ 1, 1, 1 });
+        return;
+    }
+
     var visible: u16 = @intFromFloat(renderer.height / (100 * ui.scale));
     if (visible == 0) return;
     if (visible % 2 == 0) visible -= 1;
