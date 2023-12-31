@@ -6,6 +6,8 @@ const ui = @import("ui.zig");
 const input = @import("input.zig");
 const renderer = @import("renderer.zig");
 
+pub var appdata = false;
+
 pub var width: u16 = 800;
 pub var height: u16 = 450;
 pub var maximized: bool = false;

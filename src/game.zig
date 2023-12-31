@@ -60,7 +60,6 @@ fn glfwError(_: glfw.ErrorCode, description: [:0]const u8) void {
 
 pub fn main() !void {
     try vfs.init();
-    try config.load();
 
     glfw.setErrorCallback(glfwError);
     if (!glfw.init(.{})) return error.WindowCreation;
