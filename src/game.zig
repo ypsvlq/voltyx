@@ -8,26 +8,29 @@ const text = @import("text.zig");
 const ui = @import("ui.zig");
 const audio = @import("audio.zig");
 
-pub const State = enum {
-    song_select,
-    ingame,
+pub const State = enum { song_select, ingame };
 
-    pub const VTable = struct {
-        const Fn = *const fn () anyerror!void;
+pub const StateVTable = struct {
+    const Fn = *const fn () anyerror!void;
 
-        init: Fn,
-        enter: Fn,
-        leave: Fn,
-        update: Fn,
-        draw3D: Fn,
-        draw2D: Fn,
-    };
+    init: Fn,
+    enter: Fn,
+    leave: Fn,
+    update: Fn,
+    draw3D: Fn,
+    draw2D: Fn,
+
+    pub fn change(self: *StateVTable, new: State) !void {
+        try self.leave();
+        self.* = get(new);
+        try self.enter();
+    }
 
     fn empty() !void {}
 
-    fn v(comptime namespace: type) VTable {
-        var result: VTable = undefined;
-        inline for (@typeInfo(VTable).Struct.fields) |field| {
+    fn v(comptime namespace: type) StateVTable {
+        var result: StateVTable = undefined;
+        inline for (@typeInfo(StateVTable).Struct.fields) |field| {
             @field(result, field.name) = if (@hasDecl(namespace, field.name))
                 @field(namespace, field.name)
             else
@@ -36,7 +39,7 @@ pub const State = enum {
         return result;
     }
 
-    pub fn vtable(self: State) VTable {
+    pub fn get(self: State) StateVTable {
         return switch (self) {
             .song_select => v(@import("state/song_select.zig")),
             .ingame => v(@import("state/ingame.zig")),
@@ -44,8 +47,7 @@ pub const State = enum {
     }
 };
 
-pub var state = State.song_select;
-var last_state = State.song_select;
+pub var state = StateVTable.get(.song_select);
 
 pub const allocator = std.heap.c_allocator;
 
@@ -79,21 +81,14 @@ pub fn main() !void {
     try audio.init();
     input.initJoystickLasers();
 
-    for (std.enums.values(State)) |state_| {
-        try state_.vtable().init();
+    for (std.enums.values(State)) |value| {
+        try StateVTable.get(value).init();
     }
-    try state.vtable().enter();
+    try state.enter();
 
     while (!window.shouldClose()) {
         _ = arena.reset(.retain_capacity);
-
-        if (state != last_state) {
-            try last_state.vtable().leave();
-            try state.vtable().enter();
-            last_state = state;
-        }
-
-        try state.vtable().update();
+        try state.update();
         try renderer.draw();
         glfw.pollEvents();
         input.updateJoystick();

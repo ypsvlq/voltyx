@@ -33,10 +33,10 @@ fn sizeCallback(_: glfw.Window, width_: i32, height_: i32) void {
 
 pub fn draw() !void {
     gl.clear(gl.COLOR_BUFFER_BIT);
-    try game.state.vtable().draw3D();
+    try game.state.draw3D();
 
     gl.enable(gl.BLEND);
-    try game.state.vtable().draw2D();
+    try game.state.draw2D();
     gl.disable(gl.BLEND);
 
     game.window.swapBuffers();

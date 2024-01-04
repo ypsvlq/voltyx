@@ -157,7 +157,7 @@ pub fn update() !void {
         const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.audio[index] });
         try audio.play(path, .{});
 
-        game.state = .ingame;
+        try game.state.change(.ingame);
         return;
     }
 
