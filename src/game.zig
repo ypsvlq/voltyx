@@ -70,6 +70,7 @@ pub fn main() !void {
     window = glfw.Window.create(config.width, config.height, "Voltyx", null, null, .{
         .scale_to_monitor = true,
         .maximized = config.maximized,
+        .samples = config.samples,
     }) orelse return error.WindowCreation;
 
     window.setInputMode(.cursor, .hidden);
