@@ -20,17 +20,16 @@ var mutex = std.Thread.Mutex{};
 var samples: []f32 = &.{};
 var i: usize = 0;
 
-fn writeFn(_: ?*anyopaque, frames: usize) void {
+fn writeFn(_: ?*anyopaque, output: []u8) void {
     mutex.lock();
     defer mutex.unlock();
 
-    for (0..frames) |frame| {
-        for (0..2) |channel| {
-            const sample = if (i < samples.len) samples[i] else 0;
-            player.write(player.channels()[channel], frame, sample);
-            i +|= 1;
-        }
-    }
+    const count = @min(output.len / player.format().size(), samples.len - i);
+    const end = count * player.format().size();
+
+    sysaudio.convertTo(f32, samples[i..][0..count], player.format(), output[0..end]);
+    @memset(output[end..], 0);
+    i += count;
 }
 
 pub const PlayOptions = struct {
@@ -62,4 +61,5 @@ pub fn stop() !void {
 
     game.allocator.free(samples);
     samples = &.{};
+    i = 0;
 }

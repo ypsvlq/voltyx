@@ -70,7 +70,7 @@ pub fn init() !void {
 
     var iter = dir.iterateAssumeFirstIteration();
     while (try iter.next()) |entry| {
-        var song_dir = try dir.dir.openDir(entry.name, .{});
+        var song_dir = try dir.openDir(entry.name, .{});
         defer song_dir.close();
 
         const bytes = vfs.readFileAt(game.temp_allocator, song_dir, "info.txt") catch |err| switch (err) {

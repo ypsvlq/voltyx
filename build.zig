@@ -1,5 +1,10 @@
 const std = @import("std");
 
+fn import(exe: *std.Build.Step.Compile, name: []const u8, args: anytype) void {
+    const dep = exe.step.owner.dependency(name, args);
+    exe.root_module.addImport(name, dep.module(name));
+}
+
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
@@ -24,46 +29,18 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    if (target.getOsTag() == .windows) {
+    if (target.result.os.tag == .windows) {
         if (optimize != .Debug) {
             exe.subsystem = .Windows;
         }
-        exe.addCSourceFile(.{ .file = .{ .path = "windows/resource.rc" }, .flags = &.{} });
+        exe.addWin32ResourceFile(.{ .file = .{ .path = "src/windows/resource.rc" } });
     }
 
-    const glfw_dep = b.dependency("mach_glfw", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    exe.addModule("mach-glfw", glfw_dep.module("mach-glfw"));
-    @import("mach_glfw").link(glfw_dep.builder, exe);
-
-    const freetype_dep = b.dependency("mach_freetype", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    exe.addModule("mach-freetype", freetype_dep.module("mach-freetype"));
-    @import("mach_freetype").linkFreetype(freetype_dep.builder, exe);
-
-    const sysaudio_dep = b.dependency("mach_sysaudio", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    exe.addModule("mach-sysaudio", sysaudio_dep.module("mach-sysaudio"));
-    @import("mach_sysaudio").link(sysaudio_dep.builder, exe);
-
-    const opus_dep = b.dependency("mach_opus", .{
-        .target = target,
-        .optimize = .ReleaseFast,
-    });
-    exe.addModule("mach-opus", opus_dep.module("mach-opus"));
-    @import("mach_opus").link(opus_dep.builder, exe);
-
-    const zigimg_dep = b.dependency("zigimg", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    exe.addModule("zigimg", zigimg_dep.module("zigimg"));
+    import(exe, "mach-glfw", .{});
+    import(exe, "mach-freetype", .{ .enable_brotli = false });
+    import(exe, "mach-sysaudio", .{});
+    import(exe, "mach-opus", .{ .optimize = .ReleaseFast });
+    import(exe, "zigimg", .{});
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default

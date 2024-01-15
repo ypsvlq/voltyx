@@ -22,9 +22,9 @@ pub fn openFile(path: []const u8) !fs.File {
     return vdir.openFile(path, .{});
 }
 
-pub fn openIterableDir(path: []const u8) !fs.IterableDir {
+pub fn openIterableDir(path: []const u8) !fs.Dir {
     try vdir.makePath(path);
-    return vdir.openIterableDir(path, .{});
+    return vdir.openDir(path, .{ .iterate = true });
 }
 
 pub fn absolutePath(path: []const u8) ![:0]u8 {

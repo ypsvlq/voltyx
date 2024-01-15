@@ -1,26 +1,27 @@
 .{
     .name = "voltyx",
     .version = "0.0.0",
+    .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
-        .mach_glfw = .{
-            .url = "https://pkg.machengine.org/mach-glfw/076b3869cbfd2ccccb6a8c01e4128bb0d7977ebb.tar.gz",
-            .hash = "1220cafbb90ea86d92c07f779e8106e6f5c3d8ab4cc68ddc8d3f80bd4b6079064135",
+        .@"mach-glfw" = .{
+            .url = "https://pkg.machengine.org/mach-glfw/d686078fcf2f4d8d94532ae28ba45e4b38aab31c.tar.gz",
+            .hash = "1220e0d40d19f6b61d6b1290401504e8052aeb980395a500ffb2bc351f749b42ec47",
         },
-        .mach_freetype = .{
-            .url = "https://pkg.machengine.org/mach-freetype/90b353a9425067010ae5e924dc845e5e5045dab7.tar.gz",
-            .hash = "12200d064703408a8c4a5734dac089a07c228d94a2ea19f3d2b5a07c2c97f1ca46dc",
+        .@"mach-freetype" = .{
+            .url = "https://pkg.machengine.org/mach-freetype/7546a906b6c4b308b98d36264dfbe32ca24ae579.tar.gz",
+            .hash = "12205faaaaf547019f0763ac620af77fff2728b8eb4222b62120ee224ce53392cf31",
         },
-        .mach_sysaudio = .{
-            .url = "https://pkg.machengine.org/mach-sysaudio/dba8539d9e9467d0c7e7bbdba2626a893c096f76.tar.gz",
-            .hash = "1220f55cd76ff3e6051878681ef15ddb845bd1cf9d201295346f8e9dac06e4077a94",
+        .@"mach-sysaudio" = .{
+            .url = "https://pkg.machengine.org/mach-sysaudio/8e4d73150af291d63a5390b157552ce0bbcd4a1d.tar.gz",
+            .hash = "12206c2ca0378bbc54721553e8167c037325e95e2791379fbe0e245a34334679dc90",
         },
-        .mach_opus = .{
-            .url = "https://pkg.machengine.org/mach-opus/3cb7711e73748df738507640c070bf35a78c2daf.tar.gz",
-            .hash = "122060fa90c937a1c654448e08df547a910be4d26595e9bbf605c9dd9d434c87426e",
+        .@"mach-opus" = .{
+            .url = "https://pkg.machengine.org/mach-opus/25ab6bc441a0c535f15ab8cf73fac4cae04dee8e.tar.gz",
+            .hash = "12203ceae8e55ec584ecd36888ef0745e578a65d8440b012879817879e2d7d83a27c",
         },
         .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/beacb0351e7a66e2073c63b1029450ae51bd1b01.tar.gz",
-            .hash = "1220178a3f11faba872c922ce6ba575774867592746695866f6894b068e3caf3c3ab",
+            .url = "https://github.com/zigimg/zigimg/archive/ad6ad042662856f55a4d67499f1c4606c9951031.tar.gz",
+            .hash = "1220bf6b616ca219f95be1205b12aa8cdb7e09838fcebeae90b48b5ab0a030c5ab45",
         },
     },
 }
