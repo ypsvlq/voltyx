@@ -36,11 +36,11 @@ pub fn build(b: *std.Build) void {
         exe.addWin32ResourceFile(.{ .file = .{ .path = "src/windows/resource.rc" } });
     }
 
-    import(exe, "mach-glfw", .{});
-    import(exe, "mach-freetype", .{ .enable_brotli = false });
-    import(exe, "mach-sysaudio", .{});
-    import(exe, "mach-opus", .{ .optimize = .ReleaseFast });
-    import(exe, "zigimg", .{});
+    import(exe, "mach-glfw", .{ .target = target, .optimize = optimize });
+    import(exe, "mach-freetype", .{ .target = target, .optimize = optimize, .enable_brotli = false });
+    import(exe, "mach-sysaudio", .{ .target = target, .optimize = optimize });
+    import(exe, "mach-opus", .{ .target = target, .optimize = .ReleaseFast });
+    import(exe, "zigimg", .{ .target = target, .optimize = optimize });
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
