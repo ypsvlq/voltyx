@@ -23,11 +23,12 @@ pub fn build(b: *std.Build) void {
         exe.addWin32ResourceFile(.{ .file = .{ .path = "src/windows/resource.rc" } });
     }
 
-    import(exe, "mach-glfw", .{ .target = target, .optimize = optimize });
-    import(exe, "mach-freetype", .{ .target = target, .optimize = optimize, .enable_brotli = false });
-    import(exe, "mach-sysaudio", .{ .target = target, .optimize = optimize });
-    import(exe, "mach-opus", .{ .target = target, .optimize = .ReleaseFast });
-    import(exe, "zigimg", .{ .target = target, .optimize = optimize });
+    const dep_optimize = if (optimize == .Debug) .ReleaseFast else optimize;
+    import(exe, "mach-glfw", .{ .target = target, .optimize = dep_optimize });
+    import(exe, "mach-freetype", .{ .target = target, .optimize = dep_optimize, .enable_brotli = false });
+    import(exe, "mach-sysaudio", .{ .target = target, .optimize = dep_optimize });
+    import(exe, "mach-opus", .{ .target = target, .optimize = dep_optimize });
+    import(exe, "zigimg", .{ .target = target, .optimize = dep_optimize });
 
     b.installArtifact(exe);
 
