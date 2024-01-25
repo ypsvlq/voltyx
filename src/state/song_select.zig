@@ -11,25 +11,102 @@ const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
 
-const Song = struct {
-    name: []const u8,
-    info: Info = .{},
-    charts: [4]Chart = .{.{}} ** 4,
-    jacket: [4]u8 = undefined,
-    audio: [4]u8 = undefined,
+const Info = struct {
+    song: SongInfo = .{},
+    charts: [4]ChartInfo = .{.{}} ** 4,
 
-    const Info = struct {
+    const SongInfo = struct {
         title: []const u8 = "unknown",
         artist: []const u8 = "unknown",
         bpm: []const u8 = "0",
         preview: f32 = 0,
     };
 
-    const Chart = struct {
+    const ChartInfo = struct {
         level: u8 = 0,
-        difficulty: []const u8 = "?",
-        effector: []const u8 = "unknown",
-        illustrator: []const u8 = "unknown",
+        difficulty: []const u8 = "<unset>",
+        effector: ?[]const u8 = null,
+        illustrator: ?[]const u8 = null,
+    };
+
+    fn load(iter: *Ini) !Info {
+        var info = Info{};
+
+        while (try iter.next()) |entry| {
+            if (iter.section.len == 0) {
+                try config.loadEntry(arena, SongInfo, &info.song, entry);
+            } else {
+                const index = try std.fmt.parseInt(u8, iter.section, 10);
+                if (index < 1 or index > 4) return error.InvalidChartIndex;
+                try config.loadEntry(arena, ChartInfo, &info.charts[index - 1], entry);
+            }
+        }
+
+        return info;
+    }
+
+    fn makeSong(self: Info, name: []const u8, dir: std.fs.Dir) !?Song {
+        var song = Song{ .name = try arena.dupe(u8, name), .info = self.song };
+
+        var has_chart = false;
+        var last_effector: []const u8 = "unknown";
+        var last_illustrator: []const u8 = "unknown";
+        var last_jacket: u8 = '1';
+        var last_audio: u8 = '1';
+
+        for (&song.charts, self.charts, 0..) |*chart, info, i| {
+            const index: u8 = @intCast(i + '1');
+            if (info.level != 0) {
+                has_chart = true;
+
+                if (info.effector) |effector| last_effector = effector;
+                if (info.illustrator) |illustrator| last_illustrator = illustrator;
+
+                chart.* = .{
+                    .level = info.level,
+                    .difficulty = difficulties.get(info.difficulty) orelse blk: {
+                        std.log.warn("{s} chart {c} has unknown difficulty {s}, assuming MXM", .{ name, index, info.difficulty });
+                        break :blk difficulties.get("MXM").?;
+                    },
+                    .effector = last_effector,
+                    .illustrator = last_illustrator,
+                    .jacket = try accessChartFile(dir, ".png", index, &last_jacket),
+                    .audio = try accessChartFile(dir, ".opus", index, &last_audio),
+                };
+            }
+        }
+
+        if (has_chart) {
+            return song;
+        } else {
+            std.log.warn("{s} has info.txt but no charts", .{name});
+            return null;
+        }
+    }
+
+    fn accessChartFile(dir: std.fs.Dir, comptime ext: []const u8, index: u8, last_valid_index: *u8) !u8 {
+        if (dir.access(.{index} ++ ext, .{})) {
+            last_valid_index.* = index;
+            return index;
+        } else |err| switch (err) {
+            error.FileNotFound => return last_valid_index.*,
+            else => return err,
+        }
+    }
+};
+
+const Song = struct {
+    name: []const u8,
+    info: Info.SongInfo,
+    charts: [4]Chart = .{std.mem.zeroes(Chart)} ** 4,
+
+    const Chart = struct {
+        level: u8,
+        difficulty: Difficulty,
+        effector: []const u8,
+        illustrator: []const u8,
+        jacket: u8,
+        audio: u8,
     };
 
     fn getIndex(self: Song, target_difficulty: u2) u2 {
@@ -81,61 +158,15 @@ pub fn init() !void {
             else => return err,
         };
         var ini = Ini{ .bytes = bytes };
-        var song = loadInfo(&ini, entry.name) catch |err| {
-            std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
-            continue;
-        };
 
-        var has_chart = false;
-        var jacket_index: u8 = '1';
-        var audio_index: u8 = '1';
-        for (song.charts, 0..) |chart, i| {
-            if (chart.level != 0) {
-                has_chart = true;
-
-                const index: u8 = @intCast('1' + i);
-                song.jacket[i] = try accessChartFile(song_dir, ".png", index, &jacket_index);
-                song.audio[i] = try accessChartFile(song_dir, ".opus", index, &audio_index);
+        if (Info.load(&ini)) |info| {
+            if (try info.makeSong(entry.name, song_dir)) |song| {
+                try songs.append(song);
             }
-        }
-
-        if (has_chart) {
-            try songs.append(song);
-        } else {
-            std.log.warn("{s} has no charts", .{entry.name});
+        } else |err| {
+            std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
         }
     }
-}
-
-fn accessChartFile(dir: std.fs.Dir, comptime ext: []const u8, index: u8, last_valid_index: *u8) !u8 {
-    if (dir.access(.{index} ++ ext, .{})) {
-        last_valid_index.* = index;
-        return index;
-    } else |err| switch (err) {
-        error.FileNotFound => return last_valid_index.*,
-        else => return err,
-    }
-}
-
-fn loadInfo(iter: *Ini, name: []const u8) !Song {
-    var song = Song{ .name = try arena.dupe(u8, name) };
-    while (try iter.next()) |entry| {
-        if (iter.section.len == 0) {
-            try config.loadEntry(arena, Song.Info, &song.info, entry);
-        } else {
-            const index = try std.fmt.parseInt(u8, iter.section, 10);
-            if (index < 1 or index > 4) return error.InvalidDifficulty;
-            const chart = &song.charts[index - 1];
-            try config.loadEntry(arena, Song.Chart, chart, entry);
-        }
-    }
-    for (&song.charts, 0..) |*chart, i| {
-        if (chart.level != 0 and difficulties.get(chart.difficulty) == null) {
-            std.log.warn("{s} difficulty {} has unknown difficulty, assuming MXM", .{ name, i });
-            chart.difficulty = "MXM";
-        }
-    }
-    return song;
 }
 
 pub fn enter() !void {
@@ -154,7 +185,7 @@ pub fn update() !void {
     if (input.state.buttons.contains(.start)) {
         const index = song.getIndex(cur_difficulty);
 
-        const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.audio[index] });
+        const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.charts[index].audio });
         try audio.play(path, .{});
 
         try game.state.change(.ingame);
@@ -244,10 +275,9 @@ pub fn draw2D() !void {
         _ = try text.draw(song.info.artist, x, y, .{ 1, 1, 1 });
         y += text.height;
 
-        const difficulty = difficulties.get(chart.difficulty).?;
         const difficulty_str = try game.format("{}", .{chart.level});
         try ui.setTextSize(24);
-        _ = try text.draw(difficulty_str, x, y, difficulty.color);
+        _ = try text.draw(difficulty_str, x, y, chart.difficulty.color);
 
         pos += 1;
         if (pos == songs.items.len) {
@@ -267,9 +297,9 @@ fn loadJacket(song: Song, difficulty: u2) !u32 {
     }
 
     var jackets: [4]u32 = undefined;
-    for (song.charts, song.jacket, &jackets) |chart, index, *out| {
+    for (song.charts, &jackets) |chart, *out| {
         if (chart.level != 0) {
-            const path = try game.format("songs/{s}/{c}.png", .{ song.name, index });
+            const path = try game.format("songs/{s}/{c}.png", .{ song.name, chart.jacket });
             out.* = glw.loadPNG(path) catch |err| blk: {
                 std.log.err("could not load {s}: {s}", .{ path, @errorName(err) });
                 break :blk default_jacket;
