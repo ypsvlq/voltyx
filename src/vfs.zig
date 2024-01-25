@@ -36,7 +36,11 @@ pub fn absolutePath(path: []const u8) ![:0]u8 {
 pub fn readFileAt(allocator: std.mem.Allocator, dir: fs.Dir, path: []const u8) ![]u8 {
     const file = try dir.openFile(path, .{});
     defer file.close();
-    const buf = try allocator.alloc(u8, try file.getEndPos());
+
+    const size = try file.getEndPos();
+    if (size > std.math.maxInt(usize)) return error.OutOfMemory;
+
+    const buf = try allocator.alloc(u8, @intCast(size));
     try file.reader().readNoEof(buf);
     return buf;
 }
