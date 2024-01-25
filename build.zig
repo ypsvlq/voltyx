@@ -16,12 +16,8 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    if (target.result.os.tag == .windows) {
-        if (optimize != .Debug) {
-            exe.subsystem = .Windows;
-        }
-        exe.addWin32ResourceFile(.{ .file = .{ .path = "src/windows/resource.rc" } });
-    }
+    exe.subsystem = .Windows;
+    exe.addWin32ResourceFile(.{ .file = .{ .path = "src/windows/resource.rc" } });
 
     const dep_optimize = if (optimize == .Debug) .ReleaseFast else optimize;
     import(exe, "mach-glfw", .{ .target = target, .optimize = dep_optimize });
