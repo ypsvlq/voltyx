@@ -173,6 +173,7 @@ var want_preview: bool = false;
 
 pub fn enter() !void {
     want_preview = true;
+    config.song = std.math.clamp(config.song, 0, songs.items.len - 1);
 }
 
 var last_laser_tick: [2]f64 = .{ 0, 0 };
