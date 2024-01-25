@@ -175,17 +175,15 @@ pub fn enter() !void {
     want_preview = true;
 }
 
-var cur_song: usize = 0;
-var cur_difficulty: u2 = 3;
 var last_laser_tick: [2]f64 = .{ 0, 0 };
 
 pub fn update() !void {
     if (songs.items.len == 0) return;
 
-    const song = songs.items[cur_song];
+    const song = songs.items[config.song];
 
     if (input.state.buttons.contains(.start)) {
-        const index = song.getIndex(cur_difficulty);
+        const index = song.getIndex(config.difficulty);
 
         const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.charts[index].audio });
         try audio.play(path, .{});
@@ -205,24 +203,24 @@ pub fn update() !void {
     }
 
     if (lasers[0] > 0) {
-        cur_difficulty = song.getIndex(cur_difficulty);
-        cur_difficulty +|= 1;
+        config.difficulty = song.getIndex(config.difficulty);
+        config.difficulty +|= 1;
     } else if (lasers[0] < 0) {
-        cur_difficulty = song.getIndex(cur_difficulty);
-        cur_difficulty -|= 1;
+        config.difficulty = song.getIndex(config.difficulty);
+        config.difficulty -|= 1;
     }
 
     if (lasers[1] > 0) {
-        if (cur_song == songs.items.len - 1) {
-            cur_song = 0;
+        if (config.song == songs.items.len - 1) {
+            config.song = 0;
         } else {
-            cur_song += 1;
+            config.song += 1;
         }
     } else if (lasers[1] < 0) {
-        if (cur_song == 0) {
-            cur_song = songs.items.len - 1;
+        if (config.song == 0) {
+            config.song = songs.items.len - 1;
         } else {
-            cur_song -= 1;
+            config.song -= 1;
         }
     }
 
@@ -247,7 +245,7 @@ pub fn draw2D() !void {
     if (visible == 0) return;
     if (visible % 2 == 0) visible -= 1;
 
-    var pos = cur_song;
+    var pos = config.song;
     for (0..visible / 2) |_| {
         if (pos == 0) {
             pos = songs.items.len;
@@ -259,7 +257,7 @@ pub fn draw2D() !void {
     var base: u16 = 0;
     for (0..visible) |_| {
         const song = songs.items[pos];
-        const index = song.getIndex(cur_difficulty);
+        const index = song.getIndex(config.difficulty);
         const chart = song.charts[index];
 
         const jacket = try loadJacket(song, index);
