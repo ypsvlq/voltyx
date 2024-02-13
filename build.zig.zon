@@ -4,24 +4,24 @@
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
         .@"mach-glfw" = .{
-            .url = "https://pkg.machengine.org/mach-glfw/d686078fcf2f4d8d94532ae28ba45e4b38aab31c.tar.gz",
-            .hash = "1220e0d40d19f6b61d6b1290401504e8052aeb980395a500ffb2bc351f749b42ec47",
+            .url = "https://pkg.machengine.org/mach-glfw/63da35e57c3695a787b927e69e4140eb74ffc234.tar.gz",
+            .hash = "1220fda87b59df6353864651cdd3943f1159d8d517a45cd67bed493fe6c0a0c78c17",
         },
         .@"mach-freetype" = .{
-            .url = "https://pkg.machengine.org/mach-freetype/7546a906b6c4b308b98d36264dfbe32ca24ae579.tar.gz",
-            .hash = "12205faaaaf547019f0763ac620af77fff2728b8eb4222b62120ee224ce53392cf31",
+            .url = "https://pkg.machengine.org/mach-freetype/dc4a5d8ce14f8678f35bdaf197303091e22b1f27.tar.gz",
+            .hash = "122070070dd2c402d94c279d64d4a4d154691ad49f46fa2c24ed7c6e4e4f5c531477",
         },
         .@"mach-sysaudio" = .{
-            .url = "https://pkg.machengine.org/mach-sysaudio/8e4d73150af291d63a5390b157552ce0bbcd4a1d.tar.gz",
-            .hash = "12206c2ca0378bbc54721553e8167c037325e95e2791379fbe0e245a34334679dc90",
+            .url = "https://pkg.machengine.org/mach-sysaudio/ce8ab30dd300b822224d14997c58c06520b642c9.tar.gz",
+            .hash = "12203f0d4afc83bae8571434ff48a459732c15c9542df13e0a97baedc73212d355a1",
         },
         .@"mach-opus" = .{
-            .url = "https://pkg.machengine.org/mach-opus/25ab6bc441a0c535f15ab8cf73fac4cae04dee8e.tar.gz",
-            .hash = "12203ceae8e55ec584ecd36888ef0745e578a65d8440b012879817879e2d7d83a27c",
+            .url = "https://pkg.machengine.org/mach-opus/a38ea61ceff48f210b392f5df581865eddae5883.tar.gz",
+            .hash = "122096dd59d9f86108d8f80207a3d273f47d1c316195d830f1fc18101512b7692fc6",
         },
         .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/ad6ad042662856f55a4d67499f1c4606c9951031.tar.gz",
-            .hash = "1220bf6b616ca219f95be1205b12aa8cdb7e09838fcebeae90b48b5ab0a030c5ab45",
+            .url = "https://github.com/zigimg/zigimg/archive/2a8bbd31faf913fa4af331928547a0d268fe90b4.tar.gz",
+            .hash = "1220df4bb9e6a6edb9351da17626fd81da465d0246eef5da299e4a3f0b21b7c02146",
         },
     },
 }
