@@ -228,7 +228,7 @@ pub fn update() !void {
     if (lasers[1] != 0) {
         want_preview = true;
         try audio.stop();
-    } else if (want_preview and glfw.getTime() - last_laser_tick[1] > 0.75) {
+    } else if (want_preview and glfw.getTime() - last_laser_tick[1] > 0.5) {
         want_preview = false;
         const path = try game.format("songs/{s}/1.opus", .{song.name});
         try audio.play(path, .{ .start = song.info.preview, .length = 10 });
