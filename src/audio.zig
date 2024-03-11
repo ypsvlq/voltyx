@@ -1,5 +1,5 @@
 const std = @import("std");
-const sysaudio = @import("mach-sysaudio");
+const sysaudio = @import("mach").sysaudio;
 const Opus = @import("mach-opus");
 const game = @import("game.zig");
 const vfs = @import("vfs.zig");

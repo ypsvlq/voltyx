@@ -3,25 +3,25 @@
     .version = "0.0.0",
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
+        .mach = .{
+            .url = "https://pkg.machengine.org/mach/279290bbf2f1adab0af00323280a07d6bfff47a5.tar.gz",
+            .hash = "1220ba5472217ef81455b19d540967049bbfaf768b30d04534865707e907ee1c4aec",
+        },
         .@"mach-glfw" = .{
-            .url = "https://pkg.machengine.org/mach-glfw/63da35e57c3695a787b927e69e4140eb74ffc234.tar.gz",
-            .hash = "1220fda87b59df6353864651cdd3943f1159d8d517a45cd67bed493fe6c0a0c78c17",
+            .url = "https://pkg.machengine.org/mach-glfw/1a9a03399058fd83f7fbb597f3f8304007ff6a3c.tar.gz",
+            .hash = "1220b4d58ec6cf53abfd8d7547d39afb9bffa41822d4d58f52625230466e51cc93bb",
         },
         .@"mach-freetype" = .{
-            .url = "https://pkg.machengine.org/mach-freetype/dc4a5d8ce14f8678f35bdaf197303091e22b1f27.tar.gz",
-            .hash = "122070070dd2c402d94c279d64d4a4d154691ad49f46fa2c24ed7c6e4e4f5c531477",
-        },
-        .@"mach-sysaudio" = .{
-            .url = "https://pkg.machengine.org/mach-sysaudio/ce8ab30dd300b822224d14997c58c06520b642c9.tar.gz",
-            .hash = "12203f0d4afc83bae8571434ff48a459732c15c9542df13e0a97baedc73212d355a1",
+            .url = "https://pkg.machengine.org/mach-freetype/100c7f65f654dbdcab7adc290d28ff6aab7b8d0c.tar.gz",
+            .hash = "12201c1eb9856e133f66ae904ced3a965a53a2098104036cac91b90686cdd9ccb859",
         },
         .@"mach-opus" = .{
-            .url = "https://pkg.machengine.org/mach-opus/a38ea61ceff48f210b392f5df581865eddae5883.tar.gz",
-            .hash = "122096dd59d9f86108d8f80207a3d273f47d1c316195d830f1fc18101512b7692fc6",
+            .url = "https://pkg.machengine.org/mach-opus/58a22201881d7639339f3c029d13a00bbfe005e2.tar.gz",
+            .hash = "1220821426e087874779f8d76a6bb74844aa3934648aad5b7331701e5f386791c51e",
         },
         .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/2a8bbd31faf913fa4af331928547a0d268fe90b4.tar.gz",
-            .hash = "1220df4bb9e6a6edb9351da17626fd81da465d0246eef5da299e4a3f0b21b7c02146",
+            .url = "https://github.com/zigimg/zigimg/archive/8873f29fc449e1b63400e9f4ad86d3c76204f962.tar.gz",
+            .hash = "122019f6439545235af116d0d8eb81fde1ff05fdb070da57c723772c557f84c5bf39",
         },
         .sqlite = .{
             .url = "https://sqlite.org/2024/sqlite-autoconf-3450100.tar.gz",
