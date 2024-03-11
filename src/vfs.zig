@@ -4,16 +4,17 @@ const config = @import("config.zig");
 const fs = std.fs;
 
 var vdir: fs.Dir = undefined;
+var vpath: []const u8 = undefined;
 
 pub fn init() !void {
-    const self_dir_path = try fs.selfExeDirPathAlloc(game.temp_allocator);
-    vdir = try fs.openDirAbsolute(self_dir_path, .{});
+    vpath = try fs.selfExeDirPathAlloc(game.temp_allocator);
+    vdir = try fs.openDirAbsolute(vpath, .{});
     try config.load();
 
     if (config.appdata) {
         vdir.close();
-        const appdata_path = try fs.getAppDataDir(game.temp_allocator, "Voltyx");
-        vdir = try fs.openDirAbsolute(appdata_path, .{});
+        vpath = try fs.getAppDataDir(game.temp_allocator, "Voltyx");
+        vdir = try fs.openDirAbsolute(vpath, .{});
         try config.load();
     }
 }
@@ -28,9 +29,7 @@ pub fn openIterableDir(path: []const u8) !fs.Dir {
 }
 
 pub fn absolutePath(path: []const u8) ![:0]u8 {
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const realpath = try vdir.realpath(path, &buffer);
-    return game.temp_allocator.dupeZ(u8, realpath);
+    return std.fmt.allocPrintZ(game.temp_allocator, "{s}{c}{s}", .{ vpath, std.fs.path.sep, path });
 }
 
 pub fn readFileAt(allocator: std.mem.Allocator, dir: fs.Dir, path: []const u8) ![]u8 {

@@ -7,6 +7,7 @@ const renderer = @import("renderer.zig");
 const text = @import("text.zig");
 const ui = @import("ui.zig");
 const audio = @import("audio.zig");
+const db = @import("db.zig");
 
 pub const State = enum { song_select, ingame };
 
@@ -80,6 +81,7 @@ pub fn main() !void {
     try text.init();
     try ui.init();
     try audio.init();
+    try db.init();
     input.initJoystickLasers();
 
     for (std.enums.values(State)) |value| {
