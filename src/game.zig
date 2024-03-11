@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 const glfw = @import("mach-glfw");
 const vfs = @import("vfs.zig");
 const config = @import("config.zig");
@@ -8,6 +9,7 @@ const text = @import("text.zig");
 const ui = @import("ui.zig");
 const audio = @import("audio.zig");
 const db = @import("db.zig");
+const Strings = @import("Strings.zig");
 
 pub const State = enum { song_select, ingame };
 
@@ -49,6 +51,7 @@ pub const StateVTable = struct {
 };
 
 pub var state = StateVTable.get(.song_select);
+pub var strings = &Strings.English;
 
 pub const allocator = std.heap.c_allocator;
 
@@ -102,4 +105,23 @@ pub fn main() !void {
 
 pub fn format(comptime fmt: []const u8, args: anytype) ![]u8 {
     return try std.fmt.allocPrint(temp_allocator, fmt, args);
+}
+
+extern fn MessageBoxW(hwnd: ?*anyopaque, text: [*:0]const u16, caption: [*:0]const u16, type: u32) callconv(std.os.windows.WINAPI) i32;
+const MB_ICONERROR = 0x00000010;
+
+pub fn messageBox(message: []const u8) !void {
+    const title = "Voltyx";
+
+    switch (builtin.os.tag) {
+        .windows => {
+            const wtitle = std.unicode.utf8ToUtf16LeStringLiteral(title);
+            if (std.unicode.utf8ToUtf16LeWithNull(temp_allocator, message)) |wmessage| {
+                _ = MessageBoxW(null, wmessage, wtitle, MB_ICONERROR);
+            } else |_| {}
+        },
+        else => std.log.err("{s}", .{message}),
+    }
+
+    return error.MessageBoxShown;
 }

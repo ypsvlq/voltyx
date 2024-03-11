@@ -10,5 +10,11 @@ pub fn main() !void {
         _ = AttachConsole(ATTACH_PARENT_PROCESS);
     }
 
-    return game.main();
+    game.main() catch |err| {
+        if (builtin.mode != .Debug and err != error.MessageBoxShown) {
+            game.messageBox(game.strings.error_unhandled) catch {};
+        }
+
+        return err;
+    };
 }

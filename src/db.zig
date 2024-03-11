@@ -33,7 +33,7 @@ pub fn init() !void {
     var current_version = (try iter.next()).?;
 
     if (current_version > migrations.len) {
-        return error.UnsupportedSaveVersion;
+        return game.messageBox(game.strings.error_save_version);
     }
 
     while (current_version < migrations.len) {
