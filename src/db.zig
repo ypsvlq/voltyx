@@ -68,7 +68,7 @@ fn Statement(comptime Params: type, comptime Row: type) type {
                     u32 => @bitCast(c.sqlite3_column_int(self.handle, n)),
                     i64 => c.sqlite3_column_int64(self.handle, n),
                     u64 => @bitCast(c.sqlite3_column_int64(self.handle, n)),
-                    else => unreachable,
+                    else => @compileError("unhandled type: " ++ @typeName(T)),
                 };
             }
 
