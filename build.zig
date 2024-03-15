@@ -25,6 +25,7 @@ pub fn build(b: *std.Build) void {
     import(exe, "mach-freetype", .{ .target = target, .optimize = optimize, .enable_brotli = false });
     import(exe, "mach-opus", .{ .target = target, .optimize = always_release });
     import(exe, "zigimg", .{ .target = target, .optimize = optimize });
+    import(exe, "Ini", .{ .target = target, .optimize = optimize });
 
     var sqlite_flags = std.ArrayList([]const u8).init(b.allocator);
     sqlite_flags.appendSlice(&.{

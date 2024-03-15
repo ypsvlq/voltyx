@@ -1,6 +1,6 @@
 const std = @import("std");
 const glfw = @import("mach-glfw");
-const Ini = @import("../Ini.zig");
+const Ini = @import("Ini");
 const vfs = @import("../vfs.zig");
 const config = @import("../config.zig");
 const glw = @import("../glw.zig");
@@ -34,11 +34,11 @@ const Info = struct {
 
         while (try iter.next()) |entry| {
             if (iter.section.len == 0) {
-                try config.loadEntry(arena, SongInfo, &info.song, entry);
+                try entry.unpack(arena, SongInfo, &info.song, .{});
             } else {
                 const index = try std.fmt.parseInt(u8, iter.section, 10);
                 if (index < 1 or index > 4) return error.InvalidChartIndex;
-                try config.loadEntry(arena, ChartInfo, &info.charts[index - 1], entry);
+                try entry.unpack(arena, ChartInfo, &info.charts[index - 1], .{});
             }
         }
 

@@ -27,5 +27,9 @@
             .url = "https://sqlite.org/2024/sqlite-autoconf-3450100.tar.gz",
             .hash = "1220e93e5a9a2a54fbb195d65db308d4bc9f4646c2cfa4cf4f3248dad5ad344c3e56",
         },
+        .Ini = .{
+            .url = "https://github.com/ypsvlq/Ini/archive/5ed3317e0e238bee64cd95b415bf9b58fe91c96c.tar.gz",
+            .hash = "12206a94ac56dcb74655f1494f0776d922b809c39392751e377af0a92ae7438bb6c9",
+        },
     },
 }

@@ -1,5 +1,5 @@
 const std = @import("std");
-const Ini = @import("Ini.zig");
+const Ini = @import("Ini");
 const vfs = @import("vfs.zig");
 const game = @import("game.zig");
 const ui = @import("ui.zig");
@@ -32,46 +32,10 @@ const section_handlers = std.ComptimeStringMap(Handlers, .{
     .{ "joystick", .{ .load = input.joystickConfigLoad, .save = input.joystickConfigSave } },
 });
 
-fn set(allocator: std.mem.Allocator, comptime T: type, ptr: anytype, value: []const u8) !void {
-    if (T == []const u8) {
-        ptr.* = try allocator.dupe(u8, value);
-        return;
-    }
-    switch (@typeInfo(T)) {
-        .Int => ptr.* = try std.fmt.parseInt(T, value, 10),
-        .Float => ptr.* = try std.fmt.parseFloat(T, value),
-        .Bool => ptr.* = if (std.mem.eql(u8, value, "true")) true else if (std.mem.eql(u8, value, "false")) false else return error.InvalidBool,
-        .Optional => return set(allocator, std.meta.Child(T), ptr, value),
-        .Array => {
-            var iter = std.mem.tokenizeScalar(u8, value, ' ');
-            for (ptr) |*elem_ptr| {
-                const elem = iter.next() orelse return error.NotEnoughElements;
-                try set(allocator, std.meta.Child(T), elem_ptr, elem);
-            }
-            if (iter.next() != null) return error.ExtraElement;
-        },
-        .Fn, .Type => {},
-        else => @compileError("unhandled type: " ++ @typeName(T)),
-    }
-}
-
-pub fn loadEntry(allocator: std.mem.Allocator, comptime T: type, value: anytype, entry: Ini.Entry) !void {
-    const info = @typeInfo(T).Struct;
-    const fields = if (info.fields.len > 0) info.fields else info.decls;
-    inline for (fields) |field| {
-        if (std.mem.eql(u8, field.name, entry.key)) {
-            const ptr = &@field(value, field.name);
-            const FieldType = @TypeOf(ptr.*);
-            return set(allocator, FieldType, ptr, entry.value);
-        }
-    }
-    return error.UnknownKey;
-}
-
 fn process(iter: *Ini) !void {
     while (try iter.next()) |entry| {
         if (iter.section.len == 0) {
-            try loadEntry(game.allocator, @This(), @This(), entry);
+            try entry.unpack(game.allocator, @This(), @This(), .{});
         } else {
             const handler = section_handlers.get(iter.section) orelse return error.UnknownSection;
             try handler.load(entry.key, entry.value);
