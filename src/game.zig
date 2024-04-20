@@ -11,9 +11,7 @@ const audio = @import("audio.zig");
 const db = @import("db.zig");
 const Strings = @import("Strings.zig");
 
-pub const State = enum { song_select, ingame };
-
-pub const StateVTable = struct {
+pub const State = struct {
     const Fn = *const fn () anyerror!void;
 
     init: Fn,
@@ -23,17 +21,11 @@ pub const StateVTable = struct {
     draw3D: Fn,
     draw2D: Fn,
 
-    pub fn change(self: *StateVTable, new: State) !void {
-        try self.leave();
-        self.* = get(new);
-        try self.enter();
-    }
-
     fn empty() !void {}
 
-    fn v(comptime namespace: type) StateVTable {
-        var result: StateVTable = undefined;
-        inline for (@typeInfo(StateVTable).Struct.fields) |field| {
+    fn v(comptime namespace: type) State {
+        var result: State = undefined;
+        inline for (@typeInfo(State).Struct.fields) |field| {
             @field(result, field.name) = if (@hasDecl(namespace, field.name))
                 @field(namespace, field.name)
             else
@@ -42,15 +34,19 @@ pub const StateVTable = struct {
         return result;
     }
 
-    pub fn get(self: State) StateVTable {
-        return switch (self) {
-            .song_select => v(@import("state/song_select.zig")),
-            .ingame => v(@import("state/ingame.zig")),
-        };
+    const vtables = struct {
+        pub const song_select = v(@import("state/song_select.zig"));
+        pub const ingame = v(@import("state/ingame.zig"));
+    };
+
+    pub fn change(self: *State, comptime name: anytype) !void {
+        try self.leave();
+        self.* = @field(vtables, @tagName(name));
+        try self.enter();
     }
 };
 
-pub var state = StateVTable.get(.song_select);
+pub var state = State.vtables.song_select;
 pub var strings = &Strings.English;
 
 pub const allocator = std.heap.c_allocator;
@@ -87,8 +83,8 @@ pub fn main() !void {
     try db.init();
     input.initJoystickLasers();
 
-    for (std.enums.values(State)) |value| {
-        try StateVTable.get(value).init();
+    inline for (@typeInfo(State.vtables).Struct.decls) |decl| {
+        try @field(State.vtables, decl.name).init();
     }
     try state.enter();
 
