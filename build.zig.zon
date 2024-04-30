@@ -4,16 +4,16 @@
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
         .mach = .{
-            .url = "https://pkg.machengine.org/mach/279290bbf2f1adab0af00323280a07d6bfff47a5.tar.gz",
-            .hash = "1220ba5472217ef81455b19d540967049bbfaf768b30d04534865707e907ee1c4aec",
+            .url = "https://pkg.machengine.org/mach/cbf066ade52e1c53db9934d1d63889b112e5006e.tar.gz",
+            .hash = "1220f63c50a5ad730fe317fb2e9b7b2343268bdafb24502ed56976e57fc0b3a4b6ea",
         },
         .@"mach-glfw" = .{
-            .url = "https://pkg.machengine.org/mach-glfw/1a9a03399058fd83f7fbb597f3f8304007ff6a3c.tar.gz",
-            .hash = "1220b4d58ec6cf53abfd8d7547d39afb9bffa41822d4d58f52625230466e51cc93bb",
+            .url = "https://pkg.machengine.org/mach-glfw/e57190c095097810980703aa26d4f0669a21dbab.tar.gz",
+            .hash = "12205a32c8e6ca23c68191b1e95405d2bd5f8e3055cba1c8ce0738d673ef49aef913",
         },
         .@"mach-freetype" = .{
-            .url = "https://pkg.machengine.org/mach-freetype/100c7f65f654dbdcab7adc290d28ff6aab7b8d0c.tar.gz",
-            .hash = "12201c1eb9856e133f66ae904ced3a965a53a2098104036cac91b90686cdd9ccb859",
+            .url = "https://pkg.machengine.org/mach-freetype/309be0cf11a2f617d06ee5c5bb1a88d5197d8b46.tar.gz",
+            .hash = "1220fcebb0b1a4561f9d116182e30d0a91d2a556dad8564c8f425fd729556dedc7cf",
         },
         .@"mach-opus" = .{
             .url = "https://pkg.machengine.org/mach-opus/58a22201881d7639339f3c029d13a00bbfe005e2.tar.gz",
@@ -24,8 +24,8 @@
             .hash = "122019f6439545235af116d0d8eb81fde1ff05fdb070da57c723772c557f84c5bf39",
         },
         .sqlite = .{
-            .url = "https://sqlite.org/2024/sqlite-autoconf-3450100.tar.gz",
-            .hash = "1220e93e5a9a2a54fbb195d65db308d4bc9f4646c2cfa4cf4f3248dad5ad344c3e56",
+            .url = "https://sqlite.org/2024/sqlite-autoconf-3450300.tar.gz",
+            .hash = "1220b5f5395e3183723ae28c6c094109b6ceef70547b6322fe1d28583980d612ea43",
         },
         .Ini = .{
             .url = "https://github.com/ypsvlq/Ini/archive/5ed3317e0e238bee64cd95b415bf9b58fe91c96c.tar.gz",
