@@ -36,6 +36,7 @@ pub const State = struct {
 
     const vtables = struct {
         pub const song_select = v(@import("state/song_select.zig"));
+        pub const cache = v(@import("state/cache.zig"));
         pub const ingame = v(@import("state/ingame.zig"));
     };
 
@@ -46,7 +47,7 @@ pub const State = struct {
     }
 };
 
-pub var state = State.vtables.song_select;
+pub var state = State.vtables.cache;
 pub var strings = &Strings.English;
 
 pub const allocator = std.heap.c_allocator;

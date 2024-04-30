@@ -1,108 +1,28 @@
 const std = @import("std");
 const glfw = @import("mach-glfw");
-const Ini = @import("Ini");
-const vfs = @import("../vfs.zig");
 const config = @import("../config.zig");
 const glw = @import("../glw.zig");
 const game = @import("../game.zig");
+const db = @import("../db.zig");
 const ui = @import("../ui.zig");
 const renderer = @import("../renderer.zig");
 const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
-
-const Info = struct {
-    song: SongInfo = .{},
-    charts: [4]ChartInfo = .{.{}} ** 4,
-
-    const SongInfo = struct {
-        title: []const u8 = "unknown",
-        artist: []const u8 = "unknown",
-        bpm: []const u8 = "0",
-        preview: f32 = 0,
-    };
-
-    const ChartInfo = struct {
-        level: u8 = 0,
-        difficulty: []const u8 = "<unset>",
-        effector: ?[]const u8 = null,
-        illustrator: ?[]const u8 = null,
-    };
-
-    fn load(iter: *Ini) !Info {
-        var info = Info{};
-
-        while (try iter.next()) |entry| {
-            if (iter.section.len == 0) {
-                try entry.unpack(arena, SongInfo, &info.song, .{});
-            } else {
-                const index = try std.fmt.parseInt(u8, iter.section, 10);
-                if (index < 1 or index > 4) return error.InvalidChartIndex;
-                try entry.unpack(arena, ChartInfo, &info.charts[index - 1], .{});
-            }
-        }
-
-        return info;
-    }
-
-    fn makeSong(self: Info, name: []const u8, dir: std.fs.Dir) !?Song {
-        var song = Song{ .name = try arena.dupe(u8, name), .info = self.song };
-
-        var has_chart = false;
-        var last_effector: []const u8 = "unknown";
-        var last_illustrator: []const u8 = "unknown";
-        var last_jacket: u8 = '1';
-        var last_audio: u8 = '1';
-
-        for (&song.charts, self.charts, 0..) |*chart, info, i| {
-            const index: u8 = @intCast(i + '1');
-            if (info.level != 0) {
-                has_chart = true;
-
-                if (info.effector) |effector| last_effector = effector;
-                if (info.illustrator) |illustrator| last_illustrator = illustrator;
-
-                chart.* = .{
-                    .level = info.level,
-                    .difficulty = difficulties.get(info.difficulty) orelse blk: {
-                        std.log.warn("{s} chart {c} has unknown difficulty {s}, assuming MXM", .{ name, index, info.difficulty });
-                        break :blk difficulties.get("MXM").?;
-                    },
-                    .effector = last_effector,
-                    .illustrator = last_illustrator,
-                    .jacket = try accessChartFile(dir, ".png", index, &last_jacket),
-                    .audio = try accessChartFile(dir, ".opus", index, &last_audio),
-                };
-            }
-        }
-
-        if (has_chart) {
-            return song;
-        } else {
-            std.log.warn("{s} has info.txt but no charts", .{name});
-            return null;
-        }
-    }
-
-    fn accessChartFile(dir: std.fs.Dir, comptime ext: []const u8, index: u8, last_valid_index: *u8) !u8 {
-        if (dir.access(.{index} ++ ext, .{})) {
-            last_valid_index.* = index;
-            return index;
-        } else |err| switch (err) {
-            error.FileNotFound => return last_valid_index.*,
-            else => return err,
-        }
-    }
-};
+const cache = @import("cache.zig");
 
 const Song = struct {
+    hash: u64,
     name: []const u8,
-    info: Info.SongInfo,
-    charts: [4]Chart = .{std.mem.zeroes(Chart)} ** 4,
+    title: []const u8,
+    artist: []const u8,
+    bpm: []const u8,
+    preview: f32,
+    charts: [4]Chart,
 
     const Chart = struct {
         level: u8,
-        difficulty: Difficulty,
+        difficulty: cache.Difficulty,
         effector: []const u8,
         illustrator: []const u8,
         jacket: u8,
@@ -116,64 +36,62 @@ const Song = struct {
     }
 };
 
-const Difficulty = struct {
-    name: []const u8,
-    color: [3]f32,
-};
-
-const difficulties = std.ComptimeStringMap(Difficulty, .{
-    .{ "NOV", .{ .name = "NOVICE", .color = ui.rgb(0x5A49FB) } },
-    .{ "ADV", .{ .name = "ADVANCED", .color = ui.rgb(0xFBD349) } },
-    .{ "EXH", .{ .name = "EXHAUST", .color = ui.rgb(0xFB494C) } },
-    .{ "MXM", .{ .name = "MAXIMUM", .color = ui.rgb(0xACACAC) } },
-    .{ "INF", .{ .name = "INFINITE", .color = ui.rgb(0xEE65E5) } },
-    .{ "GRV", .{ .name = "GRAVITY", .color = ui.rgb(0xFB8F49) } },
-    .{ "HVN", .{ .name = "HEAVENLY", .color = ui.rgb(0x49C9FB) } },
-    .{ "VVD", .{ .name = "VIVID", .color = ui.rgb(0xFF59CD) } },
-    .{ "XCD", .{ .name = "EXCEED", .color = ui.rgb(0x187FFF) } },
-});
-
+var song_query: db.Statement(void, cache.Song) = undefined;
+var chart_query: db.Statement(i64, cache.Chart) = undefined;
 var default_jacket: u32 = undefined;
+
+pub fn init() !void {
+    try song_query.prepare("SELECT hash,name,title,artist,bpm,preview,chart1,chart2,chart3,chart4 FROM song WHERE name IS NOT NULL ORDER BY name");
+    try chart_query.prepare("SELECT level,difficulty,effector,illustrator,jacket,audio FROM chart WHERE id = ?");
+    default_jacket = try glw.loadEmbeddedPNG("jacket.png");
+}
 
 var arena_instance = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 const arena = arena_instance.allocator();
 var songs = std.ArrayList(Song).init(arena);
 
-pub fn init() !void {
-    default_jacket = try glw.loadEmbeddedPNG("jacket.png");
-
-    var dir = try vfs.openIterableDir("songs");
-    defer dir.close();
-
-    var iter = dir.iterateAssumeFirstIteration();
-    while (try iter.next()) |entry| {
-        var song_dir = try dir.openDir(entry.name, .{});
-        defer song_dir.close();
-
-        const bytes = vfs.readFileAt(game.temp_allocator, song_dir, "info.txt") catch |err| switch (err) {
-            error.FileNotFound => {
-                std.log.warn("{s} does not contain info.txt", .{entry.name});
-                continue;
-            },
-            else => return err,
-        };
-        var ini = Ini{ .bytes = bytes };
-
-        if (Info.load(&ini)) |info| {
-            if (try info.makeSong(entry.name, song_dir)) |song| {
-                try songs.append(song);
-            }
-        } else |err| {
-            std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
-        }
-    }
-}
-
 var want_preview: bool = false;
 
 pub fn enter() !void {
-    want_preview = true;
-    config.song = std.math.clamp(config.song, 0, songs.items.len - 1);
+    songs.clearAndFree();
+    _ = arena_instance.reset(.retain_capacity);
+
+    var iter = try song_query.iter({});
+    while (try iter.next()) |row| {
+        var song = Song{
+            .hash = row.hash,
+            .name = try arena.dupe(u8, row.name),
+            .title = try arena.dupe(u8, row.title),
+            .artist = try arena.dupe(u8, row.artist),
+            .bpm = try arena.dupe(u8, row.bpm),
+            .preview = row.preview,
+            .charts = undefined,
+        };
+
+        for (row.charts, &song.charts) |maybe_chart, *chart| {
+            if (maybe_chart) |id| {
+                var chart_iter = try chart_query.iter(id);
+                const info = (try chart_iter.next()).?;
+                chart.* = .{
+                    .level = info.level,
+                    .difficulty = cache.difficulties[info.difficulty],
+                    .effector = try arena.dupe(u8, info.effector),
+                    .illustrator = try arena.dupe(u8, info.illustrator),
+                    .jacket = info.jacket,
+                    .audio = info.audio,
+                };
+            } else {
+                chart.level = 0;
+            }
+        }
+
+        try songs.append(song);
+    }
+
+    if (songs.items.len != 0) {
+        config.song = std.math.clamp(config.song, 0, songs.items.len - 1);
+        want_preview = true;
+    }
 }
 
 var last_laser_tick: [2]f64 = .{ 0, 0 };
@@ -231,7 +149,7 @@ pub fn update() !void {
     } else if (want_preview and glfw.getTime() - last_laser_tick[1] > 0.5) {
         want_preview = false;
         const path = try game.format("songs/{s}/1.opus", .{song.name});
-        try audio.play(path, .{ .start = song.info.preview, .length = 10 });
+        try audio.play(path, .{ .start = song.preview, .length = 10 });
     }
 }
 
@@ -268,11 +186,11 @@ pub fn draw2D() !void {
         var y = base + ui.scaleConst(5);
 
         try ui.setTextSize(24);
-        _ = try text.draw(song.info.title, x, y, .{ 1, 1, 1 });
+        _ = try text.draw(song.title, x, y, .{ 1, 1, 1 });
         y += text.height;
 
         try ui.setTextSize(18);
-        _ = try text.draw(song.info.artist, x, y, .{ 1, 1, 1 });
+        _ = try text.draw(song.artist, x, y, .{ 1, 1, 1 });
         y += text.height;
 
         const difficulty_str = try game.format("{}", .{chart.level});

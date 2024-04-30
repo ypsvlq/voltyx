@@ -29,59 +29,108 @@ pub fn init() !void {
 
     const version_stmt = try prepare("PRAGMA user_version", void, u32);
     defer version_stmt.deinit();
-    var iter = try version_stmt.exec({});
+    var iter = try version_stmt.iter({});
     var current_version = (try iter.next()).?;
 
     if (current_version > migrations.len) {
         return game.messageBox(game.strings.error_save_version);
     }
 
-    while (current_version < migrations.len) {
-        if (c.sqlite3_exec(db, migrations[current_version], null, null, null) != c.SQLITE_OK) return error.Unexpected;
-        current_version += 1;
+    while (current_version < migrations.len) : (current_version += 1) {
+        try exec(migrations[current_version]);
     }
 }
 
-pub fn prepare(sql: [:0]const u8, comptime Params: type, comptime Row: type) !Statement(Params, Row) {
-    var stmt: ?*c.sqlite3_stmt = undefined;
-    if (c.sqlite3_prepare_v2(db, sql, -1, &stmt, null) != c.SQLITE_OK) return error.Unexpected;
-    return .{ .handle = stmt.? };
+pub fn exec(sql: [:0]const u8) !void {
+    if (c.sqlite3_exec(db, sql, null, null, null) != c.SQLITE_OK) return error.Unexpected;
 }
 
-fn Statement(comptime Params: type, comptime Row: type) type {
+pub fn prepare(sql: [:0]const u8, comptime Params: type, comptime Row: type) !Statement(Params, Row) {
+    var statement = Statement(Params, Row){};
+    try statement.prepare(sql);
+    return statement;
+}
+
+pub fn Statement(comptime Params: type, comptime Row: type) type {
     return struct {
-        handle: *c.sqlite3_stmt,
+        handle: *c.sqlite3_stmt = undefined,
+
+        pub fn prepare(self: *@This(), sql: [:0]const u8) !void {
+            var stmt: ?*c.sqlite3_stmt = undefined;
+            if (c.sqlite3_prepare_v2(db, sql, @intCast(sql.len + 1), &stmt, null) != c.SQLITE_OK) return error.Unexpected;
+            self.handle = stmt.?;
+        }
+
+        pub fn deinit(self: @This()) void {
+            _ = c.sqlite3_finalize(self.handle);
+        }
+
+        pub fn iter(self: @This(), params: Params) !RowIterator {
+            if (c.sqlite3_reset(self.handle) != c.SQLITE_OK) return error.Unexpected;
+
+            var counter: u31 = 1;
+            if (@typeInfo(Params) == .Struct) {
+                inline for (std.meta.fields(Params)) |field| {
+                    try self.bind(&counter, @field(params, field.name));
+                }
+            } else if (Params != void) {
+                try self.bind(&counter, params);
+            }
+
+            return .{ .handle = self.handle };
+        }
+
+        pub fn exec(self: @This(), params: Params) !void {
+            if (try (try self.iter(params)).next() != null) return error.Unexpected;
+        }
+
+        fn bind(self: @This(), counter: *u31, value: anytype) !void {
+            switch (@typeInfo(@TypeOf(value))) {
+                .Array => {
+                    for (value) |element| {
+                        try self.bind(counter, element);
+                    }
+                    return;
+                },
+                .Optional => {
+                    if (value) |unwrapped| {
+                        return self.bind(counter, unwrapped);
+                    } else {
+                        return self.bind(counter, null);
+                    }
+                },
+                else => {},
+            }
+
+            const index = counter.*;
+            counter.* += 1;
+
+            const result = switch (@TypeOf(value)) {
+                u8, i32 => c.sqlite3_bind_int(self.handle, index, value),
+                u64, i64 => c.sqlite3_bind_int64(self.handle, index, @bitCast(value)),
+                f32 => c.sqlite3_bind_double(self.handle, index, value),
+                []const u8 => c.sqlite3_bind_blob(self.handle, index, value.ptr, @intCast(value.len), c.SQLITE_STATIC),
+                @TypeOf(null) => c.sqlite3_bind_null(self.handle, index),
+                else => @compileError("unhandled type: " ++ @typeName(@TypeOf(value))),
+            };
+
+            if (result != c.SQLITE_OK) return error.Unexpected;
+        }
 
         const RowIterator = struct {
             handle: *c.sqlite3_stmt,
-
-            fn unpack(self: @This(), comptime T: type, ptr: *T, n: u31) !void {
-                if (T == []const u8) {
-                    const blob: [*]const u8 = @ptrCast(c.sqlite3_column_blob(self.handle, n));
-                    const bytes: u32 = @bitCast(c.sqlite3_column_bytes(self.handle, n));
-                    ptr.* = blob[0..bytes];
-                    return;
-                }
-
-                ptr.* = switch (T) {
-                    i32 => c.sqlite3_column_int(self.handle, n),
-                    u32 => @bitCast(c.sqlite3_column_int(self.handle, n)),
-                    i64 => c.sqlite3_column_int64(self.handle, n),
-                    u64 => @bitCast(c.sqlite3_column_int64(self.handle, n)),
-                    else => @compileError("unhandled type: " ++ @typeName(T)),
-                };
-            }
 
             pub fn next(self: @This()) !?Row {
                 switch (c.sqlite3_step(self.handle)) {
                     c.SQLITE_ROW => {
                         var result: Row = undefined;
+                        var counter: u31 = 0;
                         if (@typeInfo(Row) == .Struct) {
-                            inline for (std.meta.fields(Row), 0..) |field, n| {
-                                try self.unpack(field.type, &@field(result, field.name), n);
+                            inline for (std.meta.fields(Row)) |field| {
+                                @field(result, field.name) = try self.column(&counter, field.type);
                             }
                         } else {
-                            try self.unpack(Row, &result, 0);
+                            result = try self.column(&counter, Row);
                         }
                         return result;
                     },
@@ -89,16 +138,49 @@ fn Statement(comptime Params: type, comptime Row: type) type {
                     else => return error.Unexpected,
                 }
             }
+
+            fn column(self: @This(), counter: *u31, comptime T: type) !T {
+                const index = counter.*;
+
+                switch (@typeInfo(T)) {
+                    .Array => |info| {
+                        var result: T = undefined;
+                        for (&result) |*element| {
+                            element.* = try self.column(counter, info.child);
+                        }
+                        return result;
+                    },
+                    .Optional => |info| {
+                        if (c.sqlite3_column_type(self.handle, index) != c.SQLITE_NULL) {
+                            return try self.column(counter, info.child);
+                        } else {
+                            return null;
+                        }
+                    },
+                    else => {},
+                }
+
+                counter.* += 1;
+
+                if (T == []const u8) {
+                    const blob: [*]const u8 = @ptrCast(c.sqlite3_column_blob(self.handle, index));
+                    const bytes: u32 = @bitCast(c.sqlite3_column_bytes(self.handle, index));
+                    return blob[0..bytes];
+                }
+
+                return switch (T) {
+                    i32, u32 => @bitCast(c.sqlite3_column_int(self.handle, index)),
+                    i64, u64 => @bitCast(c.sqlite3_column_int64(self.handle, index)),
+                    f32 => @floatCast(c.sqlite3_column_double(self.handle, index)),
+                    u8 => std.math.cast(T, c.sqlite3_column_int(self.handle, index)) orelse error.Overflow,
+                    void => {},
+                    else => @compileError("unhandled type: " ++ @typeName(T)),
+                };
+            }
         };
-
-        pub fn exec(self: @This(), params: Params) !RowIterator {
-            if (c.sqlite3_reset(self.handle) != c.SQLITE_OK) return error.Unexpected;
-            _ = params;
-            return .{ .handle = self.handle };
-        }
-
-        pub fn deinit(self: @This()) void {
-            _ = c.sqlite3_finalize(self.handle);
-        }
     };
+}
+
+pub fn lastRowId() i64 {
+    return c.sqlite3_last_insert_rowid(db);
 }
