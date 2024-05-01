@@ -72,22 +72,25 @@ pub fn leave() !void {
 
 pub fn update() !void {
     if (try songs_iter.next()) |entry| {
-        var song_dir = try songs.openDir(entry.name, .{});
+        var song_dir = songs.openDir(entry.name, .{}) catch {
+            std.log.err("could not open songs/{s}", .{entry.name});
+            return;
+        };
         defer song_dir.close();
 
-        const bytes = vfs.readFileAt(game.temp_allocator, song_dir, "info.txt") catch |err| switch (err) {
-            error.FileNotFound => {
-                std.log.warn("{s} does not contain info.txt", .{entry.name});
-                return;
-            },
-            else => return err,
+        const bytes = vfs.readFileAt(game.temp_allocator, song_dir, "info.txt") catch |err| {
+            std.log.err("could not read songs/{s}/info.txt: {s}", .{ entry.name, @errorName(err) });
+            return err;
         };
         var ini = Ini{ .bytes = bytes };
         if (Info.load(&ini)) |info| {
-            const song, const charts = try info.make(entry.name, song_dir);
+            const song, const charts = info.make(entry.name, song_dir) catch |err| switch (err) {
+                error.Ignore => return,
+                else => return err,
+            };
 
             if (charts[0] == null and charts[1] == null and charts[2] == null and charts[3] == null) {
-                std.log.warn("{s} has info.txt but no charts", .{song.name});
+                std.log.err("songs/{s}/info.txt has no charts", .{song.name});
                 return;
             }
 
@@ -197,7 +200,10 @@ const Info = struct {
                 hash.update(&[_]u8{info.level});
 
                 const index: u8 = @intCast(tier + '1');
-                hash.update(try vfs.readFileAt(game.temp_allocator, dir, .{index} ++ ".bin"));
+                hash.update(vfs.readFileAt(game.temp_allocator, dir, .{index} ++ ".bin") catch |err| {
+                    std.log.err("could not read songs/{s}/{c}.bin: {s}", .{ name, index, @errorName(err) });
+                    return error.Ignore;
+                });
 
                 chart.* = .{
                     .level = info.level,
