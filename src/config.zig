@@ -11,6 +11,7 @@ pub var appdata = false;
 pub var width: u16 = 800;
 pub var height: u16 = 450;
 pub var maximized: bool = false;
+pub var vsync: u1 = 1;
 pub var samples: ?u31 = null;
 
 pub var joystick_name: ?[]const u8 = null;

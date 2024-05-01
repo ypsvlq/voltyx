@@ -3,6 +3,7 @@ const glfw = @import("mach-glfw");
 const gl = @import("gl.zig");
 const glw = @import("glw.zig");
 const game = @import("game.zig");
+const config = @import("config.zig");
 
 pub var width: f32 = undefined;
 pub var height: f32 = undefined;
@@ -11,7 +12,7 @@ pub var perspective: [4][4]f32 = undefined;
 
 pub fn init() !void {
     glfw.makeContextCurrent(game.window);
-    glfw.swapInterval(1);
+    glfw.swapInterval(config.vsync);
     try gl.load(glfw.getProcAddress);
 
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
