@@ -3,6 +3,7 @@ const Ini = @import("Ini");
 const glfw = @import("mach-glfw");
 const game = @import("../game.zig");
 const vfs = @import("../vfs.zig");
+const config = @import("../config.zig");
 const db = @import("../db.zig");
 const ui = @import("../ui.zig");
 const text = @import("../text.zig");
@@ -64,9 +65,11 @@ var songs_iter: std.fs.Dir.Iterator = undefined;
 pub fn enter() !void {
     songs = try vfs.openIterableDir("songs");
     songs_iter = songs.iterateAssumeFirstIteration();
+    glfw.swapInterval(0);
 }
 
 pub fn leave() !void {
+    glfw.swapInterval(config.vsync);
     songs.close();
 }
 
