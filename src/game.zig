@@ -15,6 +15,7 @@ pub const State = struct {
     const Fn = *const fn () anyerror!void;
 
     init: Fn,
+    deinit: Fn,
     enter: Fn,
     leave: Fn,
     update: Fn,
@@ -98,6 +99,11 @@ pub fn main() !void {
     }
 
     try config.save();
+
+    inline for (@typeInfo(State.vtables).Struct.decls) |decl| {
+        try @field(State.vtables, decl.name).deinit();
+    }
+    db.deinit();
 }
 
 pub fn format(comptime fmt: []const u8, args: anytype) ![]u8 {

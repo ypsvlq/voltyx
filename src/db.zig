@@ -15,6 +15,8 @@ pub fn init() !void {
 
     const path = try vfs.absolutePath("save.db");
     if (c.sqlite3_open(path, &db) != c.SQLITE_OK) return error.Unexpected;
+    try exec("PRAGMA locking_mode=EXCLUSIVE");
+    try exec("PRAGMA journal_mode=WAL");
 
     comptime var migrations: [1][:0]const u8 = undefined;
     comptime for (&migrations, 1..) |*migration, i| {
@@ -39,6 +41,10 @@ pub fn init() !void {
     while (current_version < migrations.len) : (current_version += 1) {
         try exec(migrations[current_version]);
     }
+}
+
+pub fn deinit() void {
+    _ = c.sqlite3_close(db);
 }
 
 pub fn exec(sql: [:0]const u8) !void {
