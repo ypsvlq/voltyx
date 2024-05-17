@@ -51,15 +51,13 @@ pub fn deinit() !void {
     chart_query.deinit();
 }
 
-var arena_instance = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-const arena = arena_instance.allocator();
+const arena = game.state_allocator;
 var songs = std.ArrayList(Song).init(arena);
 
 var want_preview: bool = false;
 
 pub fn enter() !void {
     songs.clearAndFree();
-    _ = arena_instance.reset(.retain_capacity);
 
     var iter = try song_query.iter({});
     while (try iter.next()) |row| {

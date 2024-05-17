@@ -43,6 +43,7 @@ pub const State = struct {
 
     pub fn change(self: *State, comptime name: anytype) !void {
         try self.leave();
+        _ = state_arena.reset(.retain_capacity);
         self.* = @field(vtables, @tagName(name));
         try self.enter();
     }
@@ -52,9 +53,10 @@ pub var state = State.vtables.cache;
 pub var strings = &Strings.English;
 
 pub const allocator = std.heap.c_allocator;
-
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+var state_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 pub const temp_allocator = arena.allocator();
+pub const state_allocator = state_arena.allocator();
 
 pub var window: glfw.Window = undefined;
 
