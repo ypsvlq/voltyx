@@ -38,6 +38,28 @@ pub fn init(window: glfw.Window) !void {
         keymap.put(.right, .{ .laser = .vol_l_right });
         keymap.put(.up, .{ .laser = .vol_r_left });
         keymap.put(.down, .{ .laser = .vol_r_right });
+
+        keymap.put(.q, .{ .button = .bt_a });
+        keymap.put(.w, .{ .button = .bt_b });
+        keymap.put(.o, .{ .button = .bt_c });
+        keymap.put(.p, .{ .button = .bt_d });
+        keymap.put(.x, .{ .button = .fx_l });
+        keymap.put(.comma, .{ .button = .fx_r });
+        keymap.put(.one, .{ .laser = .vol_l_left });
+        keymap.put(.two, .{ .laser = .vol_l_right });
+        keymap.put(.zero, .{ .laser = .vol_r_left });
+        keymap.put(.minus, .{ .laser = .vol_r_right });
+
+        keymap.put(.u, .{ .button = .bt_a });
+        keymap.put(.i, .{ .button = .bt_b });
+        keymap.put(.e, .{ .button = .bt_c });
+        keymap.put(.r, .{ .button = .bt_d });
+        keymap.put(.m, .{ .button = .fx_l });
+        keymap.put(.c, .{ .button = .fx_r });
+        keymap.put(.eight, .{ .laser = .vol_l_left });
+        keymap.put(.nine, .{ .laser = .vol_l_right });
+        keymap.put(.three, .{ .laser = .vol_r_left });
+        keymap.put(.four, .{ .laser = .vol_r_right });
     }
 }
 
