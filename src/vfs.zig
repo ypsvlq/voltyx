@@ -3,17 +3,18 @@ const game = @import("game.zig");
 const config = @import("config.zig");
 const fs = std.fs;
 
-var vdir: fs.Dir = undefined;
 var vpath: []const u8 = undefined;
+var vdir: fs.Dir = undefined;
 
 pub fn init() !void {
-    vpath = try fs.selfExeDirPathAlloc(game.temp_allocator);
+    vpath = try fs.selfExeDirPathAlloc(game.allocator);
     vdir = try fs.openDirAbsolute(vpath, .{});
     try config.load();
 
     if (config.appdata) {
+        game.allocator.free(vpath);
         vdir.close();
-        vpath = try fs.getAppDataDir(game.temp_allocator, "Voltyx");
+        vpath = try fs.getAppDataDir(game.allocator, "Voltyx");
         vdir = try fs.openDirAbsolute(vpath, .{});
         try config.load();
     }
