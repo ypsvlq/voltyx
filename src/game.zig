@@ -52,6 +52,20 @@ pub const State = struct {
 pub var state = State.vtables.cache;
 pub var strings = &Strings.English;
 
+const Language = struct {
+    name: []const u8,
+    strings: *const Strings,
+};
+
+pub const languages = blk: {
+    const decls = @typeInfo(Strings).Struct.decls;
+    var result: [decls.len]Language = undefined;
+    for (decls, &result) |decl, *p| {
+        p.* = .{ .name = decl.name, .strings = &@field(Strings, decl.name) };
+    }
+    break :blk result;
+};
+
 pub const allocator = std.heap.c_allocator;
 var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 var state_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -66,6 +80,20 @@ fn glfwError(_: glfw.ErrorCode, description: [:0]const u8) void {
 
 pub fn main() !void {
     try vfs.init();
+
+    for (languages) |language| {
+        if (std.mem.eql(u8, language.name, config.language)) {
+            strings = language.strings;
+            break;
+        }
+    }
+
+    inline for (@typeInfo(Strings).Struct.decls) |decl| {
+        if (std.mem.eql(u8, decl.name, config.language)) {
+            strings = &@field(Strings, decl.name);
+            break;
+        }
+    }
 
     glfw.setErrorCallback(glfwError);
     if (!glfw.init(.{})) return error.WindowCreation;

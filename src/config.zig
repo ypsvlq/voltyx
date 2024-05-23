@@ -14,6 +14,8 @@ pub var maximized: bool = false;
 pub var vsync: u1 = 1;
 pub var samples: ?u31 = null;
 
+pub var language: []const u8 = "English";
+
 pub var joystick_name: ?[]const u8 = null;
 pub var joystick_axes = [2]u8{ 0, 1 };
 
