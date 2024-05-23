@@ -20,6 +20,15 @@ pub const State = struct {
 
 pub var state = State{};
 
+pub fn consume(button: Button) bool {
+    if (state.buttons.contains(button)) {
+        state.buttons.remove(button);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 pub fn init(window: glfw.Window) !void {
     window.setKeyCallback(keyCallback);
     glfw.Joystick.setCallback(joystickCallback);

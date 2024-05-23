@@ -116,7 +116,7 @@ pub fn draw2D() !void {
         }
     }
 
-    if (input.state.buttons.contains(.back)) {
+    if (input.consume(.back)) {
         try audio.stop();
         try game.state.change(.song_select);
     }

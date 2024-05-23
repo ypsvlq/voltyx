@@ -104,7 +104,7 @@ pub fn update() !void {
 
     const song = songs.items[config.song];
 
-    if (input.state.buttons.contains(.start)) {
+    if (input.consume(.start)) {
         const index = song.getIndex(config.difficulty);
 
         const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.charts[index].audio });
