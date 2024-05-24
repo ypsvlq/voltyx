@@ -66,9 +66,11 @@ pub fn enter() !void {
     songs = try vfs.openIterableDir("songs");
     songs_iter = songs.iterateAssumeFirstIteration();
     glfw.swapInterval(0);
+    try db.exec("BEGIN");
 }
 
 pub fn leave() !void {
+    try db.exec("COMMIT");
     glfw.swapInterval(config.vsync);
     songs.close();
 }
@@ -101,7 +103,6 @@ pub fn update() !void {
             const hash = try song_iter.next();
             if (hash == song.hash) return;
 
-            try db.exec("BEGIN");
             if (hash != null) {
                 try song_erase.exec(song.name);
             }
@@ -112,7 +113,6 @@ pub fn update() !void {
                 }
             }
             try song_insert.exec(song);
-            try db.exec("COMMIT");
         } else |err| {
             std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
         }
