@@ -25,23 +25,27 @@ pub var right_color = ui.rgb(0xF761C3);
 pub var song: usize = 0;
 pub var difficulty: u2 = 3;
 
-const Handlers = struct {
+const Section = struct {
     load: *const fn ([]const u8, []const u8) anyerror!void,
     save: *const fn (std.fs.File.Writer) anyerror!void,
 };
 
-const section_handlers = std.ComptimeStringMap(Handlers, .{
+const sections = std.ComptimeStringMap(Section, .{
     .{ "keys", .{ .load = input.keyConfigLoad, .save = input.keyConfigSave } },
     .{ "joystick", .{ .load = input.joystickConfigLoad, .save = input.joystickConfigSave } },
 });
 
 fn process(iter: *Ini) !void {
+    var section: ?Section = null;
     while (try iter.next()) |entry| {
-        if (iter.section.len == 0) {
-            try entry.unpack(game.allocator, @This(), @This(), .{});
+        if (entry.value) |value| {
+            if (section) |handlers| {
+                try handlers.load(entry.key, value);
+            } else {
+                try entry.unpack(game.allocator, @This(), @This(), .{});
+            }
         } else {
-            const handler = section_handlers.get(iter.section) orelse return error.UnknownSection;
-            try handler.load(entry.key, entry.value);
+            section = sections.get(entry.key) orelse return error.UnknownSection;
         }
     }
 }
@@ -94,7 +98,7 @@ pub fn save() !void {
         try writeEntry(writer, decl.name, value);
     }
 
-    for (section_handlers.kvs) |entry| {
+    for (sections.kvs) |entry| {
         try writer.print("\n[{s}]\n", .{entry.key});
         try entry.value.save(writer);
     }

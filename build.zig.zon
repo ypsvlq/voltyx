@@ -28,8 +28,8 @@
             .hash = "1220b5f5395e3183723ae28c6c094109b6ceef70547b6322fe1d28583980d612ea43",
         },
         .Ini = .{
-            .url = "https://github.com/ypsvlq/Ini/archive/5ed3317e0e238bee64cd95b415bf9b58fe91c96c.tar.gz",
-            .hash = "12206a94ac56dcb74655f1494f0776d922b809c39392751e377af0a92ae7438bb6c9",
+            .url = "https://github.com/ypsvlq/Ini/archive/ae4531a43f0d85e84fbca8fad3e565b553b78198.tar.gz",
+            .hash = "1220768618eaf7016b166200c0c2e33f661c289a59dc7b3e2526292890a8406fc9e1",
         },
     },
 }

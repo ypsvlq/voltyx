@@ -154,21 +154,33 @@ const Info = struct {
 
     const ChartInfo = struct {
         level: u8 = 0,
-        difficulty: []const u8 = "<unset>",
+        difficulty: u8 = 0,
         effector: ?[]const u8 = null,
         illustrator: ?[]const u8 = null,
     };
 
     fn load(iter: *Ini) !Info {
         var info = Info{};
+        var current_chart: ?*ChartInfo = null;
 
         while (try iter.next()) |entry| {
-            if (iter.section.len == 0) {
-                try entry.unpack(null, SongInfo, &info.song, .{});
+            if (entry.value) |_| {
+                if (current_chart) |chart| {
+                    try entry.unpack(null, ChartInfo, chart, .{});
+                } else {
+                    try entry.unpack(null, SongInfo, &info.song, .{});
+                }
             } else {
-                const index = try std.fmt.parseInt(u8, iter.section, 10);
-                if (index < 1 or index > 4) return error.InvalidChartIndex;
-                try entry.unpack(null, ChartInfo, &info.charts[index - 1], .{});
+                current_chart = blk: {
+                    for (difficulties, 0..) |difficulty, i| {
+                        if (std.mem.eql(u8, difficulty.abbrev, entry.key)) {
+                            const chart = &info.charts[std.math.clamp(i, 0, 3)];
+                            chart.difficulty = @intCast(i);
+                            break :blk chart;
+                        }
+                    }
+                    return error.UnknownDifficulty;
+                };
             }
         }
 
@@ -203,20 +215,9 @@ const Info = struct {
                 if (info.effector) |effector| last_effector = effector;
                 if (info.illustrator) |illustrator| last_illustrator = illustrator;
 
-                const difficulty: u8 = blk: {
-                    for (difficulties, 0..) |difficulty, i| {
-                        if (std.mem.eql(u8, difficulty.abbrev, info.difficulty)) {
-                            break :blk @intCast(i);
-                        }
-                    }
-                    std.log.err("{s} has unknown difficulty {s}", .{ name, info.difficulty });
-                    continue;
-                };
-
                 hash.update(last_effector);
                 hash.update(last_illustrator);
-                hash.update(info.difficulty);
-                hash.update(&[_]u8{info.level});
+                hash.update(&[_]u8{ info.difficulty, info.level });
 
                 const index: u8 = @intCast(tier + '1');
                 hash.update(vfs.readFileAt(game.temp_allocator, dir, .{index} ++ ".bin") catch |err| {
@@ -226,7 +227,7 @@ const Info = struct {
 
                 chart.* = .{
                     .level = info.level,
-                    .difficulty = difficulty,
+                    .difficulty = info.difficulty,
                     .effector = last_effector,
                     .illustrator = last_illustrator,
                     .jacket = try accessChartFile(dir, ".png", index, &last_jacket),
