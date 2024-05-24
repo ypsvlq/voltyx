@@ -59,13 +59,6 @@ pub fn init() !void {
     try ui.setTextSize(36);
 }
 
-pub fn deinit() !void {
-    chart_insert.deinit();
-    song_insert.deinit();
-    song_query.deinit();
-    song_erase.deinit();
-}
-
 var songs: std.fs.Dir = undefined;
 var songs_iter: std.fs.Dir.Iterator = undefined;
 

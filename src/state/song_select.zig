@@ -46,11 +46,6 @@ pub fn init() !void {
     default_jacket = try glw.loadEmbeddedPNG("jacket.png");
 }
 
-pub fn deinit() !void {
-    song_query.deinit();
-    chart_query.deinit();
-}
-
 const arena = game.state_allocator;
 var songs = std.ArrayList(Song).init(arena);
 
