@@ -117,7 +117,7 @@ pub fn Statement(comptime Params: type, comptime Row: type) type {
             if (result != c.SQLITE_OK) return error.Unexpected;
         }
 
-        const RowIterator = struct {
+        pub const RowIterator = struct {
             handle: *c.sqlite3_stmt,
 
             pub fn next(self: @This()) !?Row {

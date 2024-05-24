@@ -50,19 +50,23 @@ var chart_insert: db.Statement(Chart, void) = undefined;
 var song_insert: db.Statement(Song, void) = undefined;
 var song_query: db.Statement([]const u8, u64) = undefined;
 var song_erase: db.Statement([]const u8, void) = undefined;
+var name_query: db.Statement(void, []const u8) = undefined;
 
 pub fn init() !void {
     try chart_insert.prepare("INSERT INTO chart(level,difficulty,effector,illustrator,jacket,audio) VALUES(?,?,?,?,?,?)");
     try song_insert.prepare("INSERT INTO song(hash,name,title,artist,bpm,preview,chart1,chart2,chart3,chart4) VALUES(?,?,?,?,?,?,?,?,?,?)");
     try song_query.prepare("SELECT hash FROM song WHERE name = ?");
     try song_erase.prepare("UPDATE song SET name = NULL WHERE name = ?");
-    try ui.setTextSize(36);
+    try name_query.prepare("SELECT name FROM song WHERE name IS NOT NULL");
 }
 
 var songs: std.fs.Dir = undefined;
 var songs_iter: std.fs.Dir.Iterator = undefined;
+var names = std.StringHashMap(void).init(game.state_allocator);
+var name_iter: ?@TypeOf(name_query).RowIterator = null;
 
 pub fn enter() !void {
+    try ui.setTextSize(36);
     songs = try vfs.openIterableDir("songs");
     songs_iter = songs.iterateAssumeFirstIteration();
     glfw.swapInterval(0);
@@ -73,6 +77,8 @@ pub fn leave() !void {
     try db.exec("COMMIT");
     glfw.swapInterval(config.vsync);
     songs.close();
+    names.clearAndFree();
+    name_iter = null;
 }
 
 pub fn update() !void {
@@ -99,6 +105,8 @@ pub fn update() !void {
                 return;
             }
 
+            try names.put(try game.state_allocator.dupe(u8, entry.name), {});
+
             var song_iter = try song_query.iter(song.name);
             const hash = try song_iter.next();
             if (hash == song.hash) return;
@@ -116,8 +124,16 @@ pub fn update() !void {
         } else |err| {
             std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
         }
+    } else if (name_iter) |iter| {
+        if (try iter.next()) |name| {
+            if (!names.contains(name)) {
+                try song_erase.exec(name);
+            }
+        } else {
+            try game.state.change(.song_select);
+        }
     } else {
-        try game.state.change(.song_select);
+        name_iter = try name_query.iter({});
     }
 }
 
