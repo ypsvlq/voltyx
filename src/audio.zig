@@ -50,6 +50,8 @@ pub fn play(path: []const u8, options: PlayOptions) !void {
     const start: usize = @intFromFloat(options.start * indices_per_s);
     const length: usize = if (options.length) |length| @intFromFloat(length * indices_per_s) else decoded.samples.len;
 
+    if (start + length > decoded.samples.len) return error.InvalidOffset;
+
     game.allocator.free(samples);
     samples = decoded.samples[0 .. start + length];
     i = start;

@@ -147,7 +147,9 @@ pub fn update() !void {
     } else if (want_preview and glfw.getTime() - last_laser_tick[1] > 0.5) {
         want_preview = false;
         const path = try game.format("songs/{s}/1.opus", .{song.name});
-        try audio.play(path, .{ .start = song.preview, .length = 10 });
+        audio.play(path, .{ .start = song.preview, .length = 10 }) catch |err| {
+            std.log.err("could not play {s}: {s}", .{ path, @errorName(err) });
+        };
     }
 }
 
