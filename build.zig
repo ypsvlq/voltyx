@@ -11,13 +11,13 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "voltyx",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     exe.subsystem = .Windows;
-    exe.addWin32ResourceFile(.{ .file = .{ .path = "src/windows/resource.rc" } });
+    exe.addWin32ResourceFile(.{ .file = b.path("src/windows/resource.rc") });
 
     const always_release = if (optimize == .Debug) .ReleaseFast else optimize;
     import(exe, "mach", .{ .target = target, .optimize = optimize, .sysaudio = true });

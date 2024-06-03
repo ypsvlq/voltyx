@@ -95,7 +95,7 @@ pub fn update() !void {
         };
         var ini = Ini{ .bytes = bytes };
         if (Info.load(&ini)) |info| {
-            const song, const charts = info.make(entry.name, song_dir) catch |err| switch (err) {
+            var song, const charts = info.make(entry.name, song_dir) catch |err| switch (err) {
                 error.Ignore => return,
                 else => return err,
             };

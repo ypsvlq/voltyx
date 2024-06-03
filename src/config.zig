@@ -30,7 +30,7 @@ const Section = struct {
     save: *const fn (std.fs.File.Writer) anyerror!void,
 };
 
-const sections = std.ComptimeStringMap(Section, .{
+const sections = std.StaticStringMap(Section).initComptime(.{
     .{ "keys", .{ .load = input.keyConfigLoad, .save = input.keyConfigSave } },
     .{ "joystick", .{ .load = input.joystickConfigLoad, .save = input.joystickConfigSave } },
 });
@@ -98,8 +98,8 @@ pub fn save() !void {
         try writeEntry(writer, decl.name, value);
     }
 
-    for (sections.kvs) |entry| {
-        try writer.print("\n[{s}]\n", .{entry.key});
-        try entry.value.save(writer);
+    for (sections.keys(), sections.values()) |name, section| {
+        try writer.print("\n[{s}]\n", .{name});
+        try section.save(writer);
     }
 }
