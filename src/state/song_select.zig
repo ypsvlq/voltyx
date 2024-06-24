@@ -10,8 +10,9 @@ const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
 const cache = @import("cache.zig");
+const ingame = @import("ingame.zig");
 
-const Song = struct {
+pub const Song = struct {
     hash: u64,
     name: []const u8,
     title: []const u8,
@@ -101,10 +102,7 @@ pub fn update() !void {
 
     if (input.consume(.start)) {
         const index = song.getIndex(config.difficulty);
-
-        const path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.charts[index].audio });
-        try audio.play(path, .{});
-
+        try ingame.prepare(song, index);
         try game.state.change(.ingame);
         return;
     }

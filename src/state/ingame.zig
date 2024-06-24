@@ -8,6 +8,7 @@ const ui = @import("../ui.zig");
 const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
+const song_select = @import("song_select.zig");
 
 var lane_program: glw.Program("lane", .{
     .Attrib = enum { vertex },
@@ -27,6 +28,11 @@ pub fn init() !void {
     lane_texture = try glw.loadEmbeddedPNG("lane.png");
 
     try color_program.compile();
+}
+
+pub fn prepare(song: song_select.Song, index: u2) !void {
+    const audio_path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.charts[index].audio });
+    try audio.play(audio_path, .{});
 }
 
 pub fn enter() !void {
