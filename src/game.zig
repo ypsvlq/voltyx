@@ -87,13 +87,6 @@ pub fn main() !void {
         }
     }
 
-    inline for (@typeInfo(Strings).Struct.decls) |decl| {
-        if (std.mem.eql(u8, decl.name, config.language)) {
-            strings = &@field(Strings, decl.name);
-            break;
-        }
-    }
-
     glfw.setErrorCallback(glfwError);
     if (!glfw.init(.{})) return error.WindowCreation;
     defer glfw.terminate();
