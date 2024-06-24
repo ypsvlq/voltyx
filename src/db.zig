@@ -15,6 +15,7 @@ pub fn init() !void {
 
     const path = try vfs.absolutePath("save.db");
     if (c.sqlite3_open(path, &db) != c.SQLITE_OK) return error.Unexpected;
+    _ = c.sqlite3_extended_result_codes(db, 1);
 
     comptime var migrations: [1][:0]const u8 = undefined;
     comptime for (&migrations, 1..) |*migration, i| {
@@ -135,6 +136,7 @@ pub fn Statement(comptime Params: type, comptime Row: type) type {
                         return result;
                     },
                     c.SQLITE_DONE => return null,
+                    c.SQLITE_CONSTRAINT_FOREIGNKEY => return error.ForeignKey,
                     else => return error.Unexpected,
                 }
             }

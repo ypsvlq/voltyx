@@ -48,16 +48,20 @@ pub const Song = struct {
 
 var chart_insert: db.Statement(Chart, void) = undefined;
 var song_insert: db.Statement(Song, void) = undefined;
-var song_query: db.Statement([]const u8, u64) = undefined;
+var song_query: db.Statement([]const u8, struct { u64, [4]?i64 }) = undefined;
+var song_delete: db.Statement([]const u8, void) = undefined;
+var chart_delete: db.Statement([4]?i64, void) = undefined;
 var song_erase: db.Statement([]const u8, void) = undefined;
-var name_query: db.Statement(void, []const u8) = undefined;
+var name_query: db.Statement(void, struct { []const u8, [4]?i64 }) = undefined;
 
 pub fn init() !void {
     try chart_insert.prepare("INSERT INTO chart(level,difficulty,effector,illustrator,jacket,audio) VALUES(?,?,?,?,?,?)");
     try song_insert.prepare("INSERT INTO song(hash,name,title,artist,bpm,preview,chart1,chart2,chart3,chart4) VALUES(?,?,?,?,?,?,?,?,?,?)");
-    try song_query.prepare("SELECT hash FROM song WHERE name = ?");
+    try song_query.prepare("SELECT hash,chart1,chart2,chart3,chart4 FROM song WHERE name = ?");
+    try song_delete.prepare("DELETE FROM song WHERE name = ?");
+    try chart_delete.prepare("DELETE FROM chart WHERE id = ? OR id = ? OR id = ? OR id = ?");
     try song_erase.prepare("UPDATE song SET name = NULL WHERE name = ?");
-    try name_query.prepare("SELECT name FROM song WHERE name IS NOT NULL");
+    try name_query.prepare("SELECT name,chart1,chart2,chart3,chart4 FROM song WHERE name IS NOT NULL");
 }
 
 var songs: std.fs.Dir = undefined;
@@ -79,6 +83,15 @@ pub fn leave() !void {
     songs.close();
     names.clearAndFree();
     name_iter = null;
+}
+
+fn delete(name: []const u8, charts: [4]?i64) !void {
+    if (song_delete.exec(name)) {
+        try chart_delete.exec(charts);
+    } else |err| switch (err) {
+        error.ForeignKey => try song_erase.exec(name),
+        else => return err,
+    }
 }
 
 pub fn update() !void {
@@ -108,12 +121,12 @@ pub fn update() !void {
             try names.put(try game.state_allocator.dupe(u8, entry.name), {});
 
             var song_iter = try song_query.iter(song.name);
-            const hash = try song_iter.next();
-            if (hash == song.hash) return;
-
-            if (hash != null) {
-                try song_erase.exec(song.name);
+            if (try song_iter.next()) |value| {
+                const hash, const old_charts = value;
+                if (hash == song.hash) return;
+                try delete(song.name, old_charts);
             }
+
             for (charts, &song.charts) |maybe_chart, *id| {
                 if (maybe_chart) |chart| {
                     try chart_insert.exec(chart);
@@ -125,9 +138,10 @@ pub fn update() !void {
             std.log.err("songs/{s}/info.txt line {}: {s}", .{ entry.name, ini.line, @errorName(err) });
         }
     } else if (name_iter) |iter| {
-        if (try iter.next()) |name| {
+        if (try iter.next()) |value| {
+            const name, const charts = value;
             if (!names.contains(name)) {
-                try song_erase.exec(name);
+                try delete(name, charts);
             }
         } else {
             try game.state.change(.song_select);
