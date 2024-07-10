@@ -4,12 +4,12 @@
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
         .mach = .{
-            .url = "https://pkg.machengine.org/mach/b72f0e11b6d292c2b60789359a61f7ee6d7dc371.tar.gz",
-            .hash = "122015e1dac4afaf275f7f2adde3814e6a27f5799cbef96bb487ee305f7e33f4dca3",
+            .url = "https://pkg.machengine.org/mach/98801a258e4f59e1c464206684e7751818609f77.tar.gz",
+            .hash = "1220c62d964c12d2446d90a294e28f863b7f668dd5c3691e652f336119b2096d11f4",
         },
         .@"mach-glfw" = .{
-            .url = "https://pkg.machengine.org/mach-glfw/8da44b719e345097664ff2e0a7620474eb11db5f.tar.gz",
-            .hash = "1220e5343c2fe2a490aa90dc52d92fd34ebfd7d0ffc7d246dd4720bb5c339ead4d7b",
+            .url = "https://pkg.machengine.org/mach-glfw/fb4ae48540454270ab969c8c645bbc6eff3c2dfb.tar.gz",
+            .hash = "12201ae68707aefe54ffb9d8c64721d4a2ac36186f8bd390e4f670033fec6737664a",
         },
         .@"mach-freetype" = .{
             .url = "https://pkg.machengine.org/mach-freetype/86fc8024d4ddd53df75dfa4f3ad4eebe0b1b4284.tar.gz",
@@ -20,8 +20,8 @@
             .hash = "12203e942ae6563c5fb05dff8e8a406b71fe6682342ae5d8d26093e6f9e3d2e02777",
         },
         .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/268c786ff5550ccb35c46a5fe804483ff210bd24.tar.gz",
-            .hash = "1220fc66474870d6ed00f442556718cb0dc7a4cb8137074370689aa8922bcc4a8bd6",
+            .url = "https://github.com/zigimg/zigimg/archive/d9dbbe22b5f7b5f1f4772169ed93ffeed8e8124d.tar.gz",
+            .hash = "122013646f7038ecc71ddf8a0d7de346d29a6ec40140af57f838b0a975c69af512b0",
         },
         .sqlite = .{
             .url = "https://sqlite.org/2024/sqlite-amalgamation-3460000.zip",
