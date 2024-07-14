@@ -15,7 +15,7 @@ pub fn init() !void {
         game.allocator.free(vpath);
         vdir.close();
         vpath = try fs.getAppDataDir(game.allocator, "Voltyx");
-        vdir = try fs.openDirAbsolute(vpath, .{});
+        vdir = try fs.cwd().makeOpenPath(vpath, .{});
         try config.load();
     }
 }
