@@ -99,12 +99,12 @@ pub fn perspective(fov: f32, aspect: f32, near: f32, far: f32) [4][4]f32 {
     });
 }
 
-pub const ShaderType = enum(gl.Enum) {
+const ShaderType = enum(gl.Enum) {
     vertex = gl.VERTEX_SHADER,
     fragment = gl.FRAGMENT_SHADER,
 };
 
-pub fn compileShader(shader_type: ShaderType, bytes: []const u8) !u32 {
+fn compileShader(shader_type: ShaderType, bytes: []const u8) !u32 {
     const shader = gl.createShader(@intFromEnum(shader_type));
 
     const version = "#version 120\n";
@@ -140,13 +140,11 @@ pub fn Program(comptime name: []const u8, comptime vars: ProgramVars) type {
     const attribs = std.enums.values(vars.Attrib);
     const uniforms = std.enums.values(vars.Uniform);
     return struct {
-        program: u32,
+        handle: u32,
         attribs: [attribs.len]u32,
         uniforms: [uniforms.len]i32,
 
-        const Self = @This();
-
-        pub fn compile(self: *Self) !void {
+        pub fn compile(self: *@This()) !void {
             const vertex_bytes = @embedFile("shaders/" ++ name ++ ".vert");
             const vertex = try compileShader(.vertex, vertex_bytes);
             defer gl.deleteShader(vertex);
@@ -175,7 +173,7 @@ pub fn Program(comptime name: []const u8, comptime vars: ProgramVars) type {
                 return error.ProgramLinkFail;
             }
 
-            self.program = program;
+            self.handle = program;
 
             for (&self.attribs, attribs) |*out, attrib| {
                 out.* = @bitCast(gl.getAttribLocation(program, @tagName(attrib)));
@@ -186,21 +184,21 @@ pub fn Program(comptime name: []const u8, comptime vars: ProgramVars) type {
             }
         }
 
-        pub fn use(self: *Self) void {
-            gl.useProgram(self.program);
+        pub fn use(self: *@This()) void {
+            gl.useProgram(self.handle);
         }
 
-        pub fn setAttribPointer(self: Self, attrib: vars.Attrib, value: anytype, size: i32, stride: i32) void {
+        pub fn setAttribPointer(self: @This(), attrib: vars.Attrib, value: anytype, size: i32, stride: i32) void {
             const index = self.attribs[@intFromEnum(attrib)];
             gl.vertexAttribPointer(index, size, gl.FLOAT, gl.FALSE, stride, value);
         }
 
-        pub fn enableAttribArray(self: Self, attrib: vars.Attrib) void {
+        pub fn enableAttribArray(self: @This(), attrib: vars.Attrib) void {
             const index = self.attribs[@intFromEnum(attrib)];
             gl.enableVertexAttribArray(index);
         }
 
-        pub fn setUniform(self: Self, uniform: vars.Uniform, value: anytype) void {
+        pub fn setUniform(self: @This(), uniform: vars.Uniform, value: anytype) void {
             const location = self.uniforms[@intFromEnum(uniform)];
             switch (@TypeOf(value)) {
                 comptime_int => gl.uniform1i(location, value),
