@@ -14,6 +14,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+        .win32_manifest = b.path("src/windows/app.manifest"),
     });
 
     exe.subsystem = .Windows;
