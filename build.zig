@@ -14,14 +14,13 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
-        .win32_manifest = b.path("src/windows/app.manifest"),
     });
 
     exe.subsystem = .Windows;
     exe.addWin32ResourceFile(.{ .file = b.path("src/windows/resource.rc") });
 
     const always_release = if (optimize == .Debug) .ReleaseFast else optimize;
-    import(exe, "wio", .{ .target = target, .optimize = optimize, .win32_manifest = false });
+    import(exe, "wio", .{ .target = target, .optimize = optimize });
     import(exe, "mach", .{ .target = target, .optimize = optimize, .sysaudio = true });
     import(exe, "mach-freetype", .{ .target = target, .optimize = optimize, .enable_brotli = false });
     import(exe, "mach-opus", .{ .target = target, .optimize = always_release });
