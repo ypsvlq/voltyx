@@ -1,5 +1,5 @@
 const std = @import("std");
-const glfw = @import("mach-glfw");
+const wio = @import("wio");
 const config = @import("../config.zig");
 const glw = @import("../glw.zig");
 const game = @import("../game.zig");
@@ -93,7 +93,7 @@ pub fn enter() !void {
     }
 }
 
-var last_laser_tick: [2]f64 = .{ 0, 0 };
+var last_laser_tick: [2]i64 = .{ 0, 0 };
 
 pub fn update() !void {
     if (songs.items.len == 0) return;
@@ -110,8 +110,9 @@ pub fn update() !void {
     var lasers: [2]i8 = .{ 0, 0 };
     for (input.state.lasers, &last_laser_tick, &lasers) |laser, *tick, *output| {
         if (laser != 0) {
-            if (glfw.getTime() - tick.* > 0.01 / @abs(laser)) {
-                tick.* = glfw.getTime();
+            const delta: f32 = @floatFromInt(std.time.milliTimestamp() - tick.*);
+            if (delta > 10 / @abs(laser)) {
+                tick.* = std.time.milliTimestamp();
                 output.* = if (laser > 0) 1 else -1;
             }
         }
@@ -142,7 +143,7 @@ pub fn update() !void {
     if (lasers[1] != 0) {
         want_preview = true;
         try audio.stop();
-    } else if (want_preview and glfw.getTime() - last_laser_tick[1] > 0.5) {
+    } else if (want_preview and std.time.milliTimestamp() - last_laser_tick[1] > 500) {
         want_preview = false;
         const path = try game.format("songs/{s}/1.opus", .{song.name});
         audio.play(path, .{ .start = song.preview, .length = 10 }) catch |err| {
@@ -158,7 +159,7 @@ pub fn draw2D() !void {
         return;
     }
 
-    var visible: u16 = @intFromFloat(renderer.height / (100 * ui.scale));
+    var visible: u16 = @intFromFloat(renderer.height / (100 * config.scale));
     if (visible == 0) return;
     if (visible % 2 == 0) visible -= 1;
 

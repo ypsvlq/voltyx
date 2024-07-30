@@ -10,13 +10,14 @@ pub var appdata = true;
 
 pub var width: u16 = 800;
 pub var height: u16 = 450;
+pub var scale: f32 = 1;
 pub var maximized: bool = false;
 pub var vsync: u1 = 1;
 pub var samples: ?u31 = null;
 
 pub var language: []const u8 = "English";
 
-pub var joystick_name: ?[]const u8 = null;
+pub var joystick_id: ?[]const u8 = null;
 pub var joystick_axes = [2]u8{ 0, 1 };
 
 pub var left_color = ui.rgb(0x1DE5EC);
@@ -66,7 +67,7 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
         return;
     }
     switch (@typeInfo(T)) {
-        .Int, .Bool => try writer.print("{s} = {}\n", .{ name, value }),
+        .Int, .Float, .Bool => try writer.print("{s} = {}\n", .{ name, value }),
         .Array => {
             try writer.print("{s} =", .{name});
             for (value) |elem| {
@@ -81,14 +82,6 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
 }
 
 pub fn save() !void {
-    maximized = (game.window.getAttrib(.maximized) == 1);
-
-    if (!maximized) {
-        const scale = game.window.getContentScale();
-        width = @intFromFloat(renderer.width / scale.x_scale);
-        height = @intFromFloat(renderer.height / scale.y_scale);
-    }
-
     const file = try vfs.createFile("config.ini");
     defer file.close();
     const writer = file.writer();

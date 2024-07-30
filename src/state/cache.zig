@@ -1,6 +1,6 @@
 const std = @import("std");
 const Ini = @import("Ini");
-const glfw = @import("mach-glfw");
+const wio = @import("wio");
 const game = @import("../game.zig");
 const vfs = @import("../vfs.zig");
 const config = @import("../config.zig");
@@ -73,13 +73,13 @@ pub fn enter() !void {
     try ui.setTextSize(36);
     songs = try vfs.openIterableDir("songs");
     songs_iter = songs.iterateAssumeFirstIteration();
-    glfw.swapInterval(0);
+    wio.swapInterval(0);
     try db.exec("BEGIN");
 }
 
 pub fn leave() !void {
     try db.exec("COMMIT");
-    glfw.swapInterval(config.vsync);
+    wio.swapInterval(config.vsync);
     songs.close();
     names.clearAndFree();
     name_iter = null;

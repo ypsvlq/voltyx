@@ -3,13 +3,13 @@
     .version = "0.0.0",
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
+        .wio = .{
+            .url = "https://github.com/ypsvlq/wio/archive/50fcf8d99435f2683ef5c4fd00bc2464597fa323.tar.gz",
+            .hash = "12203d24b6e23d6e194a3c0f5f04dbc90080ae6e5e6aa3d44bedfc8a2f7154785ef7",
+        },
         .mach = .{
             .url = "https://pkg.machengine.org/mach/98801a258e4f59e1c464206684e7751818609f77.tar.gz",
             .hash = "1220c62d964c12d2446d90a294e28f863b7f668dd5c3691e652f336119b2096d11f4",
-        },
-        .@"mach-glfw" = .{
-            .url = "https://pkg.machengine.org/mach-glfw/fb4ae48540454270ab969c8c645bbc6eff3c2dfb.tar.gz",
-            .hash = "12201ae68707aefe54ffb9d8c64721d4a2ac36186f8bd390e4f670033fec6737664a",
         },
         .@"mach-freetype" = .{
             .url = "https://pkg.machengine.org/mach-freetype/86fc8024d4ddd53df75dfa4f3ad4eebe0b1b4284.tar.gz",

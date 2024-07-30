@@ -3,10 +3,9 @@ const glfw = @import("mach-glfw");
 const gl = @import("gl.zig");
 const glw = @import("glw.zig");
 const game = @import("game.zig");
+const config = @import("config.zig");
 const text = @import("text.zig");
 const renderer = @import("renderer.zig");
-
-pub var scale: f32 = 1;
 
 var image_program: glw.Program("image", .{
     .Attrib = enum { vertex },
@@ -14,24 +13,17 @@ var image_program: glw.Program("image", .{
 }) = undefined;
 
 pub fn init() !void {
-    scale = game.window.getContentScale().y_scale;
-    game.window.setContentScaleCallback(scaleCallback);
-
     try image_program.compile();
     image_program.enableAttribArray(.vertex);
 }
 
-fn scaleCallback(_: glfw.Window, _: f32, y_scale: f32) void {
-    scale = y_scale;
-}
-
 pub fn scaleConst(comptime value: comptime_int) u16 {
-    return @intFromFloat(value * scale);
+    return @intFromFloat(value * config.scale);
 }
 
 pub fn scaleInt(comptime T: type, value: T) T {
     const float: f32 = @floatFromInt(value);
-    return @intFromFloat(float * scale);
+    return @intFromFloat(float * config.scale);
 }
 
 pub fn setTextSize(size: u32) !void {

@@ -1,6 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const glfw = @import("mach-glfw");
+const wio = @import("wio");
 const vfs = @import("vfs.zig");
 const config = @import("config.zig");
 const input = @import("input.zig");
@@ -48,7 +48,7 @@ pub const State = struct {
     }
 };
 
-pub var state = State.vtables.cache;
+pub var state = State.vtables.ingame;
 pub var strings = &Strings.English;
 
 const Language = struct {
@@ -71,13 +71,10 @@ var state_arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
 pub const temp_allocator = arena.allocator();
 pub const state_allocator = state_arena.allocator();
 
-pub var window: glfw.Window = undefined;
-
-fn glfwError(_: glfw.ErrorCode, description: [:0]const u8) void {
-    std.log.scoped(.glfw).err("{s}", .{description});
-}
+pub var window: wio.Window = undefined;
 
 pub fn main() !void {
+    try wio.init(allocator, .{ .joystick = true, .opengl = true });
     try vfs.init();
 
     for (languages) |language| {
@@ -87,37 +84,53 @@ pub fn main() !void {
         }
     }
 
-    glfw.setErrorCallback(glfwError);
-    if (!glfw.init(.{})) return error.WindowCreation;
-    defer glfw.terminate();
+    window = try wio.createWindow(.{
+        .title = "Voltyx",
+        .size = .{ .width = config.width, .height = config.height },
+        .scale = config.scale,
+        .display_mode = if (config.maximized) .maximized else .windowed,
+        .cursor_mode = .hidden,
+        .opengl = .{},
+    });
 
-    window = glfw.Window.create(config.width, config.height, "Voltyx", null, null, .{
-        .scale_to_monitor = true,
-        .maximized = config.maximized,
-        .samples = config.samples,
-    }) orelse return error.WindowCreation;
-
-    window.setInputMode(.cursor, .hidden);
-
-    try input.init(window);
+    try input.init();
     try renderer.init();
     try text.init();
     try ui.init();
     try audio.init();
     try db.init();
-    input.initJoystickLasers();
 
     inline for (@typeInfo(State.vtables).Struct.decls) |decl| {
         try @field(State.vtables, decl.name).init();
     }
-    try state.enter();
 
-    while (!window.shouldClose()) {
+    main: while (true) {
         _ = arena.reset(.retain_capacity);
+
+        var events = window.pollEvents();
+        while (events.next()) |event| {
+            switch (event) {
+                .close => break :main,
+                .create => try state.enter(),
+                .size => |size| {
+                    config.width = size.width;
+                    config.height = size.height;
+                    config.maximized = false;
+                },
+                .maximized => config.maximized = true,
+                .framebuffer => |size| renderer.viewport(size),
+                .scale => |scale| config.scale = scale,
+                .button_press => |button| input.buttonPress(button),
+                .button_release => |button| input.buttonRelease(button),
+                .unfocused => input.unfocused(),
+                .joystick => try input.openJoystick(),
+                else => {},
+            }
+        }
+
+        try input.updateJoystick();
         try state.update();
         try renderer.draw();
-        glfw.pollEvents();
-        input.updateJoystick();
     }
 
     try config.save();
@@ -127,21 +140,7 @@ pub fn format(comptime fmt: []const u8, args: anytype) ![]u8 {
     return try std.fmt.allocPrint(temp_allocator, fmt, args);
 }
 
-extern fn MessageBoxW(hwnd: ?*anyopaque, text: [*:0]const u16, caption: [*:0]const u16, type: u32) callconv(std.os.windows.WINAPI) i32;
-const MB_ICONERROR = 0x00000010;
-
 pub fn messageBox(message: []const u8) !void {
-    const title = "Voltyx";
-
-    switch (builtin.os.tag) {
-        .windows => {
-            const wtitle = std.unicode.utf8ToUtf16LeStringLiteral(title);
-            if (std.unicode.utf8ToUtf16LeWithNull(temp_allocator, message)) |wmessage| {
-                _ = MessageBoxW(null, wmessage, wtitle, MB_ICONERROR);
-            } else |_| {}
-        },
-        else => std.log.err("{s}", .{message}),
-    }
-
+    wio.messageBox(.err, "Voltyx", message);
     return error.MessageBoxShown;
 }

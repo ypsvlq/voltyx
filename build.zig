@@ -21,8 +21,8 @@ pub fn build(b: *std.Build) void {
     exe.addWin32ResourceFile(.{ .file = b.path("src/windows/resource.rc") });
 
     const always_release = if (optimize == .Debug) .ReleaseFast else optimize;
+    import(exe, "wio", .{ .target = target, .optimize = optimize, .win32_manifest = false });
     import(exe, "mach", .{ .target = target, .optimize = optimize, .sysaudio = true });
-    import(exe, "mach-glfw", .{ .target = target, .optimize = optimize });
     import(exe, "mach-freetype", .{ .target = target, .optimize = optimize, .enable_brotli = false });
     import(exe, "mach-opus", .{ .target = target, .optimize = always_release });
     import(exe, "zigimg", .{ .target = target, .optimize = optimize });

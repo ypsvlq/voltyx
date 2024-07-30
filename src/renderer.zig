@@ -1,5 +1,5 @@
 const std = @import("std");
-const glfw = @import("mach-glfw");
+const wio = @import("wio");
 const gl = @import("gl.zig");
 const glw = @import("glw.zig");
 const game = @import("game.zig");
@@ -11,23 +11,19 @@ pub var ortho: [4][4]f32 = undefined;
 pub var perspective: [4][4]f32 = undefined;
 
 pub fn init() !void {
-    glfw.makeContextCurrent(game.window);
-    glfw.swapInterval(config.vsync);
-    try gl.load(glfw.getProcAddress);
+    game.window.makeContextCurrent();
+    wio.swapInterval(config.vsync);
+    try gl.load(wio.glGetProcAddress);
 
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    const size = game.window.getSize();
-    game.window.setSizeCallback(sizeCallback);
-    sizeCallback(game.window, @bitCast(size.width), @bitCast(size.height));
 }
 
-fn sizeCallback(_: glfw.Window, width_: i32, height_: i32) void {
-    gl.viewport(0, 0, width_, height_);
+pub fn viewport(size: wio.Size) void {
+    gl.viewport(0, 0, size.width, size.height);
 
-    width = @floatFromInt(width_);
-    height = @floatFromInt(height_);
+    width = @floatFromInt(size.width);
+    height = @floatFromInt(size.height);
     ortho = glw.ortho(0, width, 0, height, -1, 1);
     perspective = glw.perspective(45, width / height, 0.1, 100);
 }

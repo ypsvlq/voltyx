@@ -1,5 +1,6 @@
 const std = @import("std");
-const glfw = @import("mach-glfw");
+const wio = @import("wio");
+const game = @import("game.zig");
 const config = @import("config.zig");
 
 const Button = enum {
@@ -29,16 +30,8 @@ pub fn consume(button: Button) bool {
     }
 }
 
-pub fn init(window: glfw.Window) !void {
-    window.setKeyCallback(keyCallback);
-    glfw.Joystick.setCallback(joystickCallback);
-
-    for (std.enums.values(glfw.Joystick.Id)) |id| {
-        const joystick = glfw.Joystick{ .jid = id };
-        if (joystick.present()) {
-            joystickCallback(joystick, .connected);
-        }
-    }
+pub fn init() !void {
+    try openJoystick();
 
     if (keymap.count() == 0) {
         keymap.put(.enter, .{ .button = .start });
@@ -54,9 +47,9 @@ pub fn init(window: glfw.Window) !void {
         keymap.put(.p, .{ .button = .bt_d });
         keymap.put(.x, .{ .button = .fx_l });
         keymap.put(.comma, .{ .button = .fx_r });
-        keymap.put(.one, .{ .laser = .vol_l_left });
-        keymap.put(.two, .{ .laser = .vol_l_right });
-        keymap.put(.zero, .{ .laser = .vol_r_left });
+        keymap.put(.@"1", .{ .laser = .vol_l_left });
+        keymap.put(.@"2", .{ .laser = .vol_l_right });
+        keymap.put(.@"0", .{ .laser = .vol_r_left });
         keymap.put(.minus, .{ .laser = .vol_r_right });
 
         keymap.put(.u, .{ .button = .bt_a });
@@ -65,10 +58,10 @@ pub fn init(window: glfw.Window) !void {
         keymap.put(.r, .{ .button = .bt_d });
         keymap.put(.m, .{ .button = .fx_l });
         keymap.put(.c, .{ .button = .fx_r });
-        keymap.put(.eight, .{ .laser = .vol_l_left });
-        keymap.put(.nine, .{ .laser = .vol_l_right });
-        keymap.put(.three, .{ .laser = .vol_r_left });
-        keymap.put(.four, .{ .laser = .vol_r_right });
+        keymap.put(.@"8", .{ .laser = .vol_l_left });
+        keymap.put(.@"9", .{ .laser = .vol_l_right });
+        keymap.put(.@"3", .{ .laser = .vol_r_left });
+        keymap.put(.@"4", .{ .laser = .vol_r_right });
     }
 }
 
@@ -84,10 +77,10 @@ const KeyAction = union(enum) {
     };
 };
 
-var keymap: std.EnumMap(glfw.Key, KeyAction) = .{};
+var keymap: std.EnumMap(wio.Button, KeyAction) = .{};
 
 pub fn keyConfigLoad(key_name: []const u8, action_name: []const u8) !void {
-    const key = std.meta.stringToEnum(glfw.Key, key_name) orelse return error.UnknownKey;
+    const key = std.meta.stringToEnum(wio.Button, key_name) orelse return error.UnknownKey;
     if (std.meta.stringToEnum(Button, action_name)) |button| {
         keymap.put(key, .{ .button = button });
     } else if (std.meta.stringToEnum(KeyAction.Laser, action_name)) |laser| {
@@ -117,31 +110,38 @@ fn mapLaserKey(laser: KeyAction.Laser) struct { *f32, f32 } {
     };
 }
 
-fn keyCallback(_: glfw.Window, key: glfw.Key, _: i32, event: glfw.Action, _: glfw.Mods) void {
+pub fn buttonPress(key: wio.Button) void {
     if (keymap.get(key)) |action| {
-        if (event == .press) {
-            switch (action) {
-                .button => |button| state.buttons.insert(button),
-                .laser => |laser| {
-                    const ptr, const value = mapLaserKey(laser);
-                    ptr.* = value;
-                },
-            }
-        } else if (event == .release) {
-            switch (action) {
-                .button => |button| state.buttons.remove(button),
-                .laser => |laser| {
-                    const ptr, const value = mapLaserKey(laser);
-                    if (ptr.* == value) {
-                        ptr.* = 0;
-                    }
-                },
-            }
+        switch (action) {
+            .button => |button| state.buttons.insert(button),
+            .laser => |laser| {
+                const ptr, const value = mapLaserKey(laser);
+                ptr.* = value;
+            },
         }
     }
 }
 
-var active_joystick: ?glfw.Joystick = null;
+pub fn buttonRelease(key: wio.Button) void {
+    if (keymap.get(key)) |action| {
+        switch (action) {
+            .button => |button| state.buttons.remove(button),
+            .laser => |laser| {
+                const ptr, const value = mapLaserKey(laser);
+                if (ptr.* == value) {
+                    ptr.* = 0;
+                }
+            },
+        }
+    }
+}
+
+pub fn unfocused() void {
+    state.buttons = .{};
+    state.lasers = [2]f32{ 0, 0 };
+}
+
+var active_joystick: ?wio.Joystick = null;
 var joystick_button_map: std.EnumMap(Button, u8) = .{};
 var last_joystick_state = State{};
 var joystick_laser_flags = [2]bool{ false, false };
@@ -159,16 +159,26 @@ pub fn joystickConfigSave(writer: std.fs.File.Writer) !void {
     }
 }
 
-pub fn updateJoystick() void {
-    if (active_joystick) |joystick| {
-        const buttons = joystick.getButtons() orelse return;
+pub fn openJoystick() !void {
+    if (active_joystick) |_| return;
+    if (config.joystick_id) |id| active_joystick = try wio.openJoystick(id);
+}
+
+pub fn updateJoystick() !void {
+    if (active_joystick) |*joystick| {
+        const data = try joystick.poll() orelse {
+            joystick.close();
+            active_joystick = null;
+            return;
+        };
+
         var new_joystick_state = State{};
 
         for (std.enums.values(Button)) |button| {
             if (joystick_button_map.get(button)) |index| {
-                if (index < buttons.len) {
+                if (index < data.buttons.len) {
                     const was_active = last_joystick_state.buttons.contains(button);
-                    if (buttons[index] == 1) {
+                    if (data.buttons[index]) {
                         new_joystick_state.buttons.insert(button);
                         if (!was_active) {
                             state.buttons.insert(button);
@@ -180,7 +190,11 @@ pub fn updateJoystick() void {
             }
         }
 
-        processJoystickLasers(joystick, &new_joystick_state.lasers) catch return;
+        for (config.joystick_axes, &new_joystick_state.lasers) |index, *laser| {
+            if (index < data.axes.len) {
+                laser.* = @as(f32, @floatFromInt(data.axes[index])) / 32767;
+            }
+        }
 
         for (&state.lasers, &joystick_laser_flags, new_joystick_state.lasers, last_joystick_state.lasers) |*out, *flag, new, last| {
             if (new != last) {
@@ -199,48 +213,5 @@ pub fn updateJoystick() void {
         }
 
         last_joystick_state = new_joystick_state;
-    }
-}
-
-fn processJoystickLasers(joystick: glfw.Joystick, lasers: *[2]f32) !void {
-    const axes = joystick.getAxes() orelse return error.Unexpected;
-    for (config.joystick_axes, lasers) |index, *laser| {
-        if (index < axes.len) {
-            laser.* = axes[index];
-        }
-    }
-}
-
-fn joystickCallback(joystick: glfw.Joystick, event: glfw.Joystick.Event) void {
-    if (event == .connected and active_joystick == null) {
-        if (config.joystick_name) |joystick_name| {
-            if (std.mem.eql(u8, joystick.getName().?, joystick_name)) {
-                active_joystick = joystick;
-            }
-        }
-    } else if (event == .disconnected) {
-        if (active_joystick) |active| {
-            if (active.jid == joystick.jid) {
-                active_joystick = null;
-
-                var iter = last_joystick_state.buttons.iterator();
-                while (iter.next()) |button| {
-                    state.buttons.remove(button);
-                }
-
-                for (&state.lasers, &joystick_laser_flags) |*out, *flag| {
-                    if (flag.*) {
-                        out.* = 0;
-                        flag.* = false;
-                    }
-                }
-            }
-        }
-    }
-}
-
-pub fn initJoystickLasers() void {
-    if (active_joystick) |joystick| {
-        processJoystickLasers(joystick, &last_joystick_state.lasers) catch return;
     }
 }
