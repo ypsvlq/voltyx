@@ -48,7 +48,7 @@ pub const State = struct {
     }
 };
 
-pub var state = State.vtables.ingame;
+pub var state = State.vtables.cache;
 pub var strings = &Strings.English;
 
 const Language = struct {
