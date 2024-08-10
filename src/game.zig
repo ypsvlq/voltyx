@@ -104,36 +104,38 @@ pub fn main() !void {
         try @field(State.vtables, decl.name).init();
     }
 
-    main: while (true) {
-        _ = arena.reset(.retain_capacity);
+    return wio.run(loop, .{});
+}
 
-        var events = window.pollEvents();
-        while (events.next()) |event| {
-            switch (event) {
-                .close => break :main,
-                .create => try state.enter(),
-                .size => |size| {
-                    config.width = size.width;
-                    config.height = size.height;
-                    config.maximized = false;
-                },
-                .maximized => config.maximized = true,
-                .framebuffer => |size| renderer.viewport(size),
-                .scale => |scale| config.scale = scale,
-                .button_press => |button| input.buttonPress(button),
-                .button_release => |button| input.buttonRelease(button),
-                .unfocused => input.unfocused(),
-                .joystick => try input.openJoystick(),
-                else => {},
-            }
-        }
+fn loop() !bool {
+    _ = arena.reset(.retain_capacity);
 
-        try input.updateJoystick();
-        try state.update();
-        try renderer.draw();
-    }
+    while (window.getEvent()) |event| switch (event) {
+        .close => {
+            try config.save();
+            return false;
+        },
+        .create => try state.enter(),
+        .size => |size| {
+            config.width = size.width;
+            config.height = size.height;
+            config.maximized = false;
+        },
+        .maximized => config.maximized = true,
+        .framebuffer => |size| renderer.viewport(size),
+        .scale => |scale| config.scale = scale,
+        .button_press => |button| input.buttonPress(button),
+        .button_release => |button| input.buttonRelease(button),
+        .unfocused => input.unfocused(),
+        .joystick => try input.openJoystick(),
+        else => {},
+    };
 
-    try config.save();
+    try input.updateJoystick();
+    try state.update();
+    try renderer.draw();
+
+    return true;
 }
 
 pub fn format(comptime fmt: []const u8, args: anytype) ![]u8 {
