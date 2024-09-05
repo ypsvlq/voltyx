@@ -188,9 +188,9 @@ pub fn Program(comptime name: []const u8, comptime vars: ProgramVars) type {
             gl.useProgram(self.handle);
         }
 
-        pub fn setAttribPointer(self: @This(), attrib: vars.Attrib, value: anytype, size: i32, stride: i32) void {
+        pub fn setAttribPointer(self: @This(), attrib: vars.Attrib, size: i32, stride: i32) void {
             const index = self.attribs[@intFromEnum(attrib)];
-            gl.vertexAttribPointer(index, size, gl.FLOAT, gl.FALSE, stride, value);
+            gl.vertexAttribPointer(index, size, gl.FLOAT, gl.FALSE, stride, null);
         }
 
         pub fn enableAttribArray(self: @This(), attrib: vars.Attrib) void {

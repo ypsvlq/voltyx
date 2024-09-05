@@ -9,6 +9,7 @@ pub var width: f32 = undefined;
 pub var height: f32 = undefined;
 pub var ortho: [4][4]f32 = undefined;
 pub var perspective: [4][4]f32 = undefined;
+var buffer: u32 = undefined;
 
 pub fn init() !void {
     try game.window.createContext(.{});
@@ -18,6 +19,8 @@ pub fn init() !void {
 
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    gl.genBuffers(1, &buffer);
 }
 
 pub fn viewport(size: wio.Size) void {
@@ -45,13 +48,12 @@ pub fn drawQuad(program: anytype, x: f32, y: f32, w: f32, h: f32) void {
         x,     y,     0, 1,
         x,     y + h, 0, 0,
         x + w, y + h, 1, 0,
+        x,     y,     0, 1,
+        x + w, y + h, 1, 0,
         x + w, y,     1, 1,
     };
-    program.setAttribPointer(.vertex, &vertices, 4, 0);
-
-    const indices = [_]u8{
-        0, 1, 2,
-        0, 2, 3,
-    };
-    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, &indices);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, @sizeOf(@TypeOf(vertices)), &vertices, gl.STATIC_DRAW);
+    program.setAttribPointer(.vertex, 4, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
