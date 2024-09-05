@@ -4,8 +4,8 @@
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
         .wio = .{
-            .url = "https://github.com/ypsvlq/wio/archive/992277a370f19e8b879c8e5f4bc7f1f006a010bb.tar.gz",
-            .hash = "1220a9baf0683b8aa70b9083b85d2aa0f881783b6ed81105a273f74782cc90048084",
+            .url = "https://github.com/ypsvlq/wio/archive/52972e58efe5b0529d4456675d39caed8e6880ce.tar.gz",
+            .hash = "12205ba774c4e671acf6a0a3170c2231548443066670a1e095502584d50bc9ee9511",
         },
         .mach = .{
             .url = "https://pkg.machengine.org/mach/9148754b7600fb0ab34dace4cfa328b9f105ea08.tar.gz",
@@ -24,8 +24,8 @@
             .hash = "122013646f7038ecc71ddf8a0d7de346d29a6ec40140af57f838b0a975c69af512b0",
         },
         .sqlite = .{
-            .url = "https://sqlite.org/2024/sqlite-amalgamation-3460000.zip",
-            .hash = "122022cc39c8caaac7f54794e193b4bc017bb1853bc7bbdb3a9813127b3524f9e55f",
+            .url = "https://sqlite.org/2024/sqlite-amalgamation-3460100.zip",
+            .hash = "12206bc219bf56b927469c7d43f53c23fe2801c8158800f8613a783956998b7fc37f",
         },
         .Ini = .{
             .url = "https://github.com/ypsvlq/Ini/archive/3b2f0c69c44b869b00775642bc7d424227f13574.tar.gz",

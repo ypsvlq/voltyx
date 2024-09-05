@@ -90,7 +90,6 @@ pub fn main() !void {
         .scale = config.scale,
         .display_mode = if (config.maximized) .maximized else .windowed,
         .cursor_mode = .hidden,
-        .opengl = .{},
     });
 
     try input.init();

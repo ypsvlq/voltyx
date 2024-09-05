@@ -73,13 +73,13 @@ pub fn enter() !void {
     try ui.setTextSize(36);
     songs = try vfs.openIterableDir("songs");
     songs_iter = songs.iterateAssumeFirstIteration();
-    wio.swapInterval(0);
+    game.window.swapInterval(0);
     try db.exec("BEGIN");
 }
 
 pub fn leave() !void {
     try db.exec("COMMIT");
-    wio.swapInterval(config.vsync);
+    game.window.swapInterval(config.vsync);
     songs.close();
     names.clearAndFree();
     name_iter = null;

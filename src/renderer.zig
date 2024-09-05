@@ -11,8 +11,9 @@ pub var ortho: [4][4]f32 = undefined;
 pub var perspective: [4][4]f32 = undefined;
 
 pub fn init() !void {
+    try game.window.createContext(.{});
     game.window.makeContextCurrent();
-    wio.swapInterval(config.vsync);
+    game.window.swapInterval(config.vsync);
     try gl.load(wio.glGetProcAddress);
 
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
