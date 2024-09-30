@@ -4,8 +4,8 @@
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
         .wio = .{
-            .url = "https://github.com/ypsvlq/wio/archive/52972e58efe5b0529d4456675d39caed8e6880ce.tar.gz",
-            .hash = "12205ba774c4e671acf6a0a3170c2231548443066670a1e095502584d50bc9ee9511",
+            .url = "https://github.com/ypsvlq/wio/archive/8aed8d6db268a6a03a14601b8181e4e7166985f9.tar.gz",
+            .hash = "12209a1ee9644f13cec2059c97ca324b2469db74243765482fc0df5badb5a942d19c",
         },
         .mach = .{
             .url = "https://pkg.machengine.org/mach/9148754b7600fb0ab34dace4cfa328b9f105ea08.tar.gz",
