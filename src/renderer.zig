@@ -17,6 +17,7 @@ pub fn init() !void {
     game.window.swapInterval(config.vsync);
     try gl.load(wio.glGetProcAddress);
 
+    gl.clearColor(0, 0, 0, 1);
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
