@@ -107,11 +107,19 @@ const ShaderType = enum(gl.Enum) {
 fn compileShader(shader_type: ShaderType, bytes: []const u8) !u32 {
     const shader = gl.createShader(@intFromEnum(shader_type));
 
-    const version = "#version 120\n";
+    const header =
+        \\#ifdef GL_ES
+        \\precision mediump float;
+        \\#endif
+        \\
+    ;
     const count = 2;
-    const strings = [count][*]const u8{ version.ptr, bytes.ptr };
-    const lengths = [count]i32{ version.len, @intCast(bytes.len) };
-    gl.shaderSource(shader, count, &strings, &lengths);
+    gl.shaderSource(
+        shader,
+        count,
+        &[count][*c]const u8{ header.ptr, bytes.ptr },
+        &[count]i32{ header.len, @intCast(bytes.len) },
+    );
     gl.compileShader(shader);
 
     var success: i32 = undefined;
