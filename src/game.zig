@@ -25,7 +25,7 @@ pub const State = struct {
 
     fn v(comptime namespace: type) State {
         var result: State = undefined;
-        inline for (@typeInfo(State).Struct.fields) |field| {
+        inline for (@typeInfo(State).@"struct".fields) |field| {
             @field(result, field.name) = if (@hasDecl(namespace, field.name))
                 @field(namespace, field.name)
             else
@@ -57,7 +57,7 @@ const Language = struct {
 };
 
 pub const languages = blk: {
-    const decls = @typeInfo(Strings).Struct.decls;
+    const decls = @typeInfo(Strings).@"struct".decls;
     var result: [decls.len]Language = undefined;
     for (decls, &result) |decl, *p| {
         p.* = .{ .name = decl.name, .strings = &@field(Strings, decl.name) };
@@ -74,7 +74,11 @@ pub const state_allocator = state_arena.allocator();
 pub var window: wio.Window = undefined;
 
 pub fn main() !void {
-    try wio.init(allocator, .{ .joystick = true, .opengl = true });
+    try wio.init(allocator, .{
+        .joystick = true,
+        .joystickCallback = input.joystickConnected,
+        .opengl = true,
+    });
     try vfs.init();
 
     for (languages) |language| {
@@ -88,7 +92,7 @@ pub fn main() !void {
         .title = "Voltyx",
         .size = .{ .width = config.width, .height = config.height },
         .scale = config.scale,
-        .display_mode = if (config.maximized) .maximized else .windowed,
+        .maximized = config.maximized,
         .cursor_mode = .hidden,
     });
 
@@ -99,7 +103,7 @@ pub fn main() !void {
     try audio.init();
     try db.init();
 
-    inline for (@typeInfo(State.vtables).Struct.decls) |decl| {
+    inline for (@typeInfo(State.vtables).@"struct".decls) |decl| {
         try @field(State.vtables, decl.name).init();
     }
 
@@ -116,17 +120,17 @@ fn loop() !bool {
         },
         .create => try state.enter(),
         .size => |size| {
-            config.width = size.width;
-            config.height = size.height;
-            config.maximized = false;
+            if (!config.maximized) {
+                config.width = size.width;
+                config.height = size.height;
+            }
         },
-        .maximized => config.maximized = true,
+        .maximized => |maximized| config.maximized = maximized,
         .framebuffer => |size| renderer.viewport(size),
         .scale => |scale| config.scale = scale,
         .button_press => |button| input.buttonPress(button),
         .button_release => |button| input.buttonRelease(button),
         .unfocused => input.unfocused(),
-        .joystick => try input.openJoystick(),
         else => {},
     };
 

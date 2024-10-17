@@ -1,5 +1,5 @@
 const std = @import("std");
-const Ini = @import("Ini");
+const Ini = @import("ylib").Ini;
 const vfs = @import("vfs.zig");
 const game = @import("game.zig");
 const ui = @import("ui.zig");
@@ -67,16 +67,16 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
         return;
     }
     switch (@typeInfo(T)) {
-        .Int, .Float, .Bool => try writer.print("{s} = {}\n", .{ name, value }),
-        .Array => {
+        .int, .float, .bool => try writer.print("{s} = {}\n", .{ name, value }),
+        .array => {
             try writer.print("{s} =", .{name});
             for (value) |elem| {
                 try writer.print(" {}", .{elem});
             }
             try writer.writeByte('\n');
         },
-        .Optional => if (value) |unwrapped| try writeEntry(writer, name, unwrapped),
-        .Fn, .Type => {},
+        .optional => if (value) |unwrapped| try writeEntry(writer, name, unwrapped),
+        .@"fn", .type => {},
         else => @compileError("unhandled type: " ++ @typeName(T)),
     }
 }
@@ -86,7 +86,7 @@ pub fn save() !void {
     defer file.close();
     const writer = file.writer();
 
-    inline for (@typeInfo(@This()).Struct.decls) |decl| {
+    inline for (@typeInfo(@This()).@"struct".decls) |decl| {
         const value = @field(@This(), decl.name);
         try writeEntry(writer, decl.name, value);
     }

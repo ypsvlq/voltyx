@@ -1,5 +1,5 @@
 const std = @import("std");
-const Ini = @import("Ini");
+const Ini = @import("ylib").Ini;
 const wio = @import("wio");
 const game = @import("../game.zig");
 const vfs = @import("../vfs.zig");

@@ -70,7 +70,7 @@ pub fn Statement(comptime Params: type, comptime Row: type) type {
             if (c.sqlite3_reset(self.handle) != c.SQLITE_OK) return error.Unexpected;
 
             var counter: u31 = 1;
-            if (@typeInfo(Params) == .Struct) {
+            if (@typeInfo(Params) == .@"struct") {
                 inline for (std.meta.fields(Params)) |field| {
                     try self.bind(&counter, @field(params, field.name));
                 }
@@ -87,13 +87,13 @@ pub fn Statement(comptime Params: type, comptime Row: type) type {
 
         fn bind(self: @This(), counter: *u31, value: anytype) !void {
             switch (@typeInfo(@TypeOf(value))) {
-                .Array => {
+                .array => {
                     for (value) |element| {
                         try self.bind(counter, element);
                     }
                     return;
                 },
-                .Optional => {
+                .optional => {
                     if (value) |unwrapped| {
                         return self.bind(counter, unwrapped);
                     } else {
@@ -126,7 +126,7 @@ pub fn Statement(comptime Params: type, comptime Row: type) type {
                     c.SQLITE_ROW => {
                         var result: Row = undefined;
                         var counter: u31 = 0;
-                        if (@typeInfo(Row) == .Struct) {
+                        if (@typeInfo(Row) == .@"struct") {
                             inline for (std.meta.fields(Row)) |field| {
                                 @field(result, field.name) = try self.column(&counter, field.type);
                             }
@@ -145,14 +145,14 @@ pub fn Statement(comptime Params: type, comptime Row: type) type {
                 const index = counter.*;
 
                 switch (@typeInfo(T)) {
-                    .Array => |info| {
+                    .array => |info| {
                         var result: T = undefined;
                         for (&result) |*element| {
                             element.* = try self.column(counter, info.child);
                         }
                         return result;
                     },
-                    .Optional => |info| {
+                    .optional => |info| {
                         if (c.sqlite3_column_type(self.handle, index) != c.SQLITE_NULL) {
                             return try self.column(counter, info.child);
                         } else {

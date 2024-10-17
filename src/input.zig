@@ -161,7 +161,15 @@ pub fn joystickConfigSave(writer: std.fs.File.Writer) !void {
 
 pub fn openJoystick() !void {
     if (active_joystick) |_| return;
-    if (config.joystick_id) |id| active_joystick = try wio.openJoystick(id);
+    if (config.joystick_id) |id| {
+        if (wio.resolveJoystickId(id)) |handle| {
+            active_joystick = try wio.openJoystick(handle);
+        }
+    }
+}
+
+pub fn joystickConnected(_: usize) void {
+    openJoystick() catch |err| std.log.err("could not open joystick: {s}", .{@errorName(err)});
 }
 
 pub fn updateJoystick() !void {
