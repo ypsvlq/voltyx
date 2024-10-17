@@ -47,22 +47,20 @@ pub fn init() !void {
     default_jacket = try glw.loadEmbeddedPNG("jacket.png");
 }
 
-const arena = game.state_allocator;
-var songs = std.ArrayList(Song).init(arena);
-
+var songs = std.ArrayList(Song).init(game.allocator);
 var want_preview: bool = false;
 
 pub fn enter() !void {
-    songs.clearAndFree();
+    songs.clearRetainingCapacity();
 
     var iter = try song_query.iter({});
     while (try iter.next()) |row| {
         var song = Song{
             .hash = row.hash,
-            .name = try arena.dupe(u8, row.name),
-            .title = try arena.dupe(u8, row.title),
-            .artist = try arena.dupe(u8, row.artist),
-            .bpm = try arena.dupe(u8, row.bpm),
+            .name = try game.state_allocator.dupe(u8, row.name),
+            .title = try game.state_allocator.dupe(u8, row.title),
+            .artist = try game.state_allocator.dupe(u8, row.artist),
+            .bpm = try game.state_allocator.dupe(u8, row.bpm),
             .preview = row.preview,
             .charts = undefined,
         };
@@ -74,8 +72,8 @@ pub fn enter() !void {
                 chart.* = .{
                     .level = info.level,
                     .difficulty = cache.difficulties[info.difficulty],
-                    .effector = try arena.dupe(u8, info.effector),
-                    .illustrator = try arena.dupe(u8, info.illustrator),
+                    .effector = try game.state_allocator.dupe(u8, info.effector),
+                    .illustrator = try game.state_allocator.dupe(u8, info.illustrator),
                     .jacket = info.jacket,
                     .audio = info.audio,
                 };
