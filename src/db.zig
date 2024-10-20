@@ -58,7 +58,7 @@ pub fn Statement(comptime Params: type, comptime Row: type) type {
 
         pub fn prepare(self: *@This(), sql: [:0]const u8) !void {
             var stmt: ?*c.sqlite3_stmt = undefined;
-            if (c.sqlite3_prepare_v2(db, sql, @intCast(sql.len + 1), &stmt, null) != c.SQLITE_OK) return error.Unexpected;
+            if (c.sqlite3_prepare_v3(db, sql, @intCast(sql.len + 1), c.SQLITE_PREPARE_PERSISTENT, &stmt, null) != c.SQLITE_OK) return error.Unexpected;
             self.handle = stmt.?;
         }
 
