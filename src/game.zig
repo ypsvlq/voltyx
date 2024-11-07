@@ -92,7 +92,7 @@ pub fn main() !void {
         .title = "Voltyx",
         .size = .{ .width = config.width, .height = config.height },
         .scale = config.scale,
-        .maximized = config.maximized,
+        .mode = config.window_mode,
         .cursor_mode = .hidden,
     });
 
@@ -120,12 +120,12 @@ fn loop() !bool {
         },
         .create => try state.enter(),
         .size => |size| {
-            if (!config.maximized) {
+            if (config.window_mode == .normal) {
                 config.width = size.width;
                 config.height = size.height;
             }
         },
-        .maximized => |maximized| config.maximized = maximized,
+        .mode => |mode| config.window_mode = mode,
         .framebuffer => |size| renderer.viewport(size),
         .scale => |scale| config.scale = scale,
         .button_press => |button| input.buttonPress(button),

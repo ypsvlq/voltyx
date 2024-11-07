@@ -4,12 +4,12 @@
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
         .ylib = .{
-            .url = "https://github.com/ypsvlq/ylib/archive/e98fe581969b0bb549e47380ce4ebc232619169d.tar.gz",
-            .hash = "1220a5c9b9894bb5bddb86d12425c5c43ff73fe88179e89897d46d80b4d9c783ed3e",
+            .url = "https://github.com/ypsvlq/ylib/archive/3792ce69365bb329a4ed7c3af3aa60d2a0f06bbc.tar.gz",
+            .hash = "1220aa7c8073ce6da4ffbf6a447f04fd9896678fda06cd0d16be19ec0ed194d509e9",
         },
         .wio = .{
-            .url = "https://github.com/ypsvlq/wio/archive/9769818cacc86641de30ffae50e15e55dd9eb14c.tar.gz",
-            .hash = "1220dfdca9f6ff3458dd4d652d7e2bfea3027e277cc344b41468eff0ca9a2d47b476",
+            .url = "https://github.com/ypsvlq/wio/archive/e6e1587a85a31ee418a832c1eb00ad6bd8d3d92d.tar.gz",
+            .hash = "1220ec6e2561ae2450e571c82669a9675ac4761594a8eda6e0b4874deb688ab75155",
         },
         .mach = .{
             .url = "https://pkg.machengine.org/mach/9a0398e78299f2f9be01561497710e82096e3750.tar.gz",
@@ -24,12 +24,12 @@
             .hash = "12201343abe6c023540da4c1cf0a419439a9d4b18dd29ad10cf46befee8868a2e85e",
         },
         .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/8dc8194b21608b0cde9894606d5e6faea3964c46.tar.gz",
-            .hash = "122026e50c74ae95bb9ef3a039fa763ccc1c22beef603562a983f6fd3035584dfd8a",
+            .url = "https://github.com/zigimg/zigimg/archive/5b5d718159c6ec223a54c9bb960690576e5df9c2.tar.gz",
+            .hash = "122040d9cc905342547e1e9da227a7f16fae5e7ae23134cb62aaef64c5b2c4f58828",
         },
         .sqlite = .{
-            .url = "https://sqlite.org/2024/sqlite-amalgamation-3460100.zip",
-            .hash = "12206bc219bf56b927469c7d43f53c23fe2801c8158800f8613a783956998b7fc37f",
+            .url = "https://sqlite.org/2024/sqlite-amalgamation-3470000.zip",
+            .hash = "12208ecb28699b71d3f37e8616418f5a53891418f13772b59dcbe19a67ace9880ae8",
         },
     },
 }

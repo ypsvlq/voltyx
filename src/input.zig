@@ -31,8 +31,6 @@ pub fn consume(button: Button) bool {
 }
 
 pub fn init() !void {
-    try openJoystick();
-
     if (keymap.count() == 0) {
         keymap.put(.enter, .{ .button = .start });
         keymap.put(.escape, .{ .button = .back });
@@ -159,22 +157,21 @@ pub fn joystickConfigSave(writer: std.fs.File.Writer) !void {
     }
 }
 
-pub fn openJoystick() !void {
-    if (active_joystick) |_| return;
-    if (config.joystick_id) |id| {
-        if (wio.resolveJoystickId(id)) |handle| {
-            active_joystick = try wio.openJoystick(handle);
+pub fn joystickConnected(device: wio.JoystickDevice) void {
+    if (active_joystick == null) {
+        if (config.joystick_id) |target| {
+            if (device.getId(game.temp_allocator)) |id| {
+                if (std.mem.eql(u8, id, target)) {
+                    active_joystick = device.open();
+                }
+            }
         }
     }
 }
 
-pub fn joystickConnected(_: usize) void {
-    openJoystick() catch |err| std.log.err("could not open joystick: {s}", .{@errorName(err)});
-}
-
 pub fn updateJoystick() !void {
     if (active_joystick) |*joystick| {
-        const data = try joystick.poll() orelse {
+        const data = joystick.poll() orelse {
             joystick.close();
             active_joystick = null;
             return;

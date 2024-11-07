@@ -1,4 +1,5 @@
 const std = @import("std");
+const wio = @import("wio");
 const Ini = @import("ylib").Ini;
 const vfs = @import("vfs.zig");
 const game = @import("game.zig");
@@ -11,7 +12,7 @@ pub var appdata = true;
 pub var width: u16 = 800;
 pub var height: u16 = 450;
 pub var scale: f32 = 1;
-pub var maximized: bool = false;
+pub var window_mode = wio.WindowMode.fullscreen;
 pub var vsync: u1 = 1;
 pub var samples: ?u31 = null;
 
@@ -68,6 +69,7 @@ fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
     }
     switch (@typeInfo(T)) {
         .int, .float, .bool => try writer.print("{s} = {}\n", .{ name, value }),
+        .@"enum" => try writer.print("{s} = {s}\n", .{ name, @tagName(value) }),
         .array => {
             try writer.print("{s} =", .{name});
             for (value) |elem| {
