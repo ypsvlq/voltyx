@@ -76,7 +76,9 @@ pub var window: wio.Window = undefined;
 pub fn main() !void {
     try wio.init(allocator, .{
         .joystick = true,
-        .joystickCallback = input.joystickConnected,
+        .joystickConnectedFn = input.joystickConnected,
+        .audio = true,
+        .audioDefaultOutputFn = audio.open,
         .opengl = true,
     });
     try vfs.init();
@@ -100,7 +102,6 @@ pub fn main() !void {
     try renderer.init();
     try text.init();
     try ui.init();
-    try audio.init();
     try db.init();
 
     inline for (@typeInfo(State.vtables).@"struct".decls) |decl| {

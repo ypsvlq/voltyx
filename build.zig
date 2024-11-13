@@ -22,7 +22,6 @@ pub fn build(b: *std.Build) void {
     const always_release = if (optimize == .Debug) .ReleaseFast else optimize;
     import(exe, "ylib", .{ .target = target, .optimize = optimize });
     import(exe, "wio", .{ .target = target, .optimize = optimize });
-    import(exe, "mach", .{ .target = target, .optimize = optimize, .sysaudio = true });
     import(exe, "mach-freetype", .{ .target = target, .optimize = optimize, .enable_brotli = false });
     import(exe, "mach-opus", .{ .target = target, .optimize = always_release });
     import(exe, "zigimg", .{ .target = target, .optimize = optimize });

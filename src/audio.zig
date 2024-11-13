@@ -1,35 +1,32 @@
 const std = @import("std");
-const sysaudio = @import("mach").sysaudio;
+const wio = @import("wio");
 const Opus = @import("mach-opus");
 const game = @import("game.zig");
 const vfs = @import("vfs.zig");
 const log = std.log.scoped(.audio);
 
-var context: sysaudio.Context = undefined;
-var player: sysaudio.Player = undefined;
+var output: ?wio.AudioOutput = null;
 
-pub fn init() !void {
-    context = try sysaudio.Context.init(null, game.allocator, .{ .app_name = "Voltyx" });
-    try context.refresh();
-    const device = context.defaultDevice(.playback) orelse return error.NoDevice;
-    player = try context.createPlayer(device, writeFn, .{ .sample_rate = 48000, .media_role = .game });
-    try player.start();
+pub fn open(device: wio.AudioDevice) void {
+    if (output) |*old| {
+        old.close();
+        output = null;
+    }
+    output = device.openOutput(writeFn, .{ .sample_rate = 48000, .channels = .initMany(&.{ .FL, .FR }) });
 }
 
 var mutex = std.Thread.Mutex{};
 var samples: []f32 = &.{};
 var i: usize = 0;
 
-fn writeFn(_: ?*anyopaque, output: []u8) void {
+fn writeFn(buffer: []f32) void {
     mutex.lock();
     defer mutex.unlock();
 
-    const count = @min(output.len / player.format().size(), samples.len - i);
-    const end = count * player.format().size();
-
-    sysaudio.convertTo(f32, samples[i..][0..count], player.format(), output[0..end]);
-    @memset(output[end..], 0);
-    i += count;
+    const end = @min(buffer.len, samples.len - i);
+    @memcpy(buffer[0..end], samples[i .. i + end]);
+    @memset(buffer[end..], 0);
+    i += end;
 }
 
 pub const PlayOptions = struct {

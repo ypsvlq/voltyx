@@ -8,12 +8,8 @@
             .hash = "1220aa7c8073ce6da4ffbf6a447f04fd9896678fda06cd0d16be19ec0ed194d509e9",
         },
         .wio = .{
-            .url = "https://github.com/ypsvlq/wio/archive/e6e1587a85a31ee418a832c1eb00ad6bd8d3d92d.tar.gz",
-            .hash = "1220ec6e2561ae2450e571c82669a9675ac4761594a8eda6e0b4874deb688ab75155",
-        },
-        .mach = .{
-            .url = "https://pkg.machengine.org/mach/9a0398e78299f2f9be01561497710e82096e3750.tar.gz",
-            .hash = "122095a0f45036379a112167314ac1e2522eb4d0d4e77df7dbbd676dab4a7b1aa103",
+            .url = "https://github.com/ypsvlq/wio/archive/18a434e37238f80ee33e5dff4a8fcb86dd06b3f6.tar.gz",
+            .hash = "12204d3a7d323a1768fc79cc3d8807ed8123b5e55d76b3cb66a8027206a3e873849b",
         },
         .@"mach-freetype" = .{
             .url = "https://pkg.machengine.org/mach-freetype/dd5e749e40f08a40bed251a5ae6233308cd07e0d.tar.gz",
