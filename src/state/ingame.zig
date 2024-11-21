@@ -107,15 +107,13 @@ pub fn draw2D() !void {
     ui.locate(10, 10);
     var iter = input.state.buttons.iterator();
     while (iter.next()) |button| {
-        try ui.drawText(@tagName(button), .{ 1, 1, 1 });
-        ui.newline();
+        try ui.drawText(@tagName(button), .{ .advance_y = true });
     }
 
     for (input.state.lasers, [2][]const u8{ "vol-l", "vol-r" }) |laser, name| {
         if (laser != 0) {
             const laser_text = try game.format("{s} {s}", .{ name, if (laser < 0) "left" else "right" });
-            try ui.drawText(laser_text, .{ 1, 1, 1 });
-            ui.newline();
+            try ui.drawText(laser_text, .{ .advance_y = true });
         }
     }
 

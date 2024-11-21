@@ -153,7 +153,7 @@ pub fn draw2D() !void {
     if (songs.items.len == 0) {
         ui.locate(10, 10);
         try ui.setTextSize(36);
-        try ui.drawText("No songs!", .{ 1, 1, 1 });
+        try ui.drawText("No songs!", .{});
         return;
     }
 
@@ -180,14 +180,16 @@ pub fn draw2D() !void {
         ui.drawImage(jacket, 0, base, size, size);
 
         ui.locate(size + 10, base + 5);
+
         try ui.setTextSize(24);
-        _ = try ui.drawText(song.title, .{ 1, 1, 1 });
-        ui.newline();
+        try ui.drawText(song.title, .{ .advance_y = true });
+
         try ui.setTextSize(18);
-        _ = try ui.drawText(song.artist, .{ 1, 1, 1 });
-        ui.newline();
+        try ui.drawText(song.artist, .{ .advance_y = true });
+
+        const difficulty = try game.format("{}", .{chart.level});
         try ui.setTextSize(24);
-        _ = try ui.drawText(try game.format("{}", .{chart.level}), chart.difficulty.color);
+        try ui.drawText(difficulty, .{ .color = chart.difficulty.color });
 
         pos += 1;
         if (pos == songs.items.len) {

@@ -20,16 +20,20 @@ var cursor_x: f32 = 0;
 var cursor_y: f32 = 0;
 
 pub fn locate(x: f32, y: f32) void {
-    cursor_x = x * config.scale;
-    cursor_y = y * config.scale;
+    cursor_x = scale(x);
+    cursor_y = scale(y);
 }
 
-pub fn newline() void {
-    cursor_y += text.height;
-}
+pub const DrawTextOptions = struct {
+    color: [3]f32 = .{ 1, 1, 1 },
+    advance_x: bool = false,
+    advance_y: bool = false,
+};
 
-pub fn drawText(string: []const u8, color: [3]f32) !void {
-    _ = try text.draw(string, cursor_x, cursor_y, color);
+pub fn drawText(string: []const u8, options: DrawTextOptions) !void {
+    const width = try text.draw(string, cursor_x, cursor_y, options.color);
+    if (options.advance_x) cursor_x += width;
+    if (options.advance_y) cursor_y += text.height;
 }
 
 pub fn setTextSize(size: u32) !void {

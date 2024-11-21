@@ -152,7 +152,7 @@ pub fn update() !void {
 }
 
 pub fn draw2D() !void {
-    try ui.drawText("Updating song cache...", .{ 1, 1, 1 });
+    try ui.drawText("Updating song cache...", .{});
 }
 
 const Info = struct {
