@@ -6,7 +6,6 @@ const game = @import("../game.zig");
 const db = @import("../db.zig");
 const ui = @import("../ui.zig");
 const renderer = @import("../renderer.zig");
-const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
 const cache = @import("cache.zig");
@@ -152,8 +151,9 @@ pub fn update() !void {
 
 pub fn draw2D() !void {
     if (songs.items.len == 0) {
+        ui.locate(10, 10);
         try ui.setTextSize(36);
-        _ = try text.draw("No songs!", 10, 10, .{ 1, 1, 1 });
+        try ui.drawText("No songs!", .{ 1, 1, 1 });
         return;
     }
 
@@ -169,8 +169,8 @@ pub fn draw2D() !void {
         pos -= 1;
     }
 
-    const size = ui.scaleConst(100);
-    var base: u16 = 0;
+    const size = 100;
+    var base: f32 = 0;
     for (0..visible) |_| {
         const song = songs.items[pos];
         const index = song.getIndex(config.difficulty);
@@ -179,20 +179,15 @@ pub fn draw2D() !void {
         const jacket = try loadJacket(song, index);
         ui.drawImage(jacket, 0, base, size, size);
 
-        const x = size + ui.scaleConst(10);
-        var y = base + ui.scaleConst(5);
-
+        ui.locate(size + 10, base + 5);
         try ui.setTextSize(24);
-        _ = try text.draw(song.title, x, y, .{ 1, 1, 1 });
-        y += text.height;
-
+        _ = try ui.drawText(song.title, .{ 1, 1, 1 });
+        ui.newline();
         try ui.setTextSize(18);
-        _ = try text.draw(song.artist, x, y, .{ 1, 1, 1 });
-        y += text.height;
-
-        const difficulty_str = try game.format("{}", .{chart.level});
+        _ = try ui.drawText(song.artist, .{ 1, 1, 1 });
+        ui.newline();
         try ui.setTextSize(24);
-        _ = try text.draw(difficulty_str, x, y, chart.difficulty.color);
+        _ = try ui.drawText(try game.format("{}", .{chart.level}), chart.difficulty.color);
 
         pos += 1;
         if (pos == songs.items.len) {

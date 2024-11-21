@@ -44,34 +44,30 @@ fn loadChar(char: u21, size: u16) !RenderedChar {
         const glyph = face.glyph();
         const bitmap = glyph.bitmap();
 
-        var result: RenderedChar = .{ .advance = @floatFromInt(glyph.advance().x >> 6), .bitmap = null };
-
-        if (bitmap.buffer()) |buffer| {
-            const texture = try glw.createTexture(buffer.ptr, bitmap.width(), bitmap.rows(), .alpha);
-            result.bitmap = .{
-                .texture = texture,
+        const result = RenderedChar{
+            .advance = fixed6(glyph.advance().x),
+            .bitmap = if (bitmap.buffer()) |buffer| .{
+                .texture = try glw.createTexture(buffer.ptr, bitmap.width(), bitmap.rows(), .alpha),
                 .width = @floatFromInt(bitmap.width()),
                 .height = @floatFromInt(bitmap.rows()),
                 .offset_x = @floatFromInt(glyph.bitmapLeft()),
                 .offset_y = @floatFromInt(glyph.bitmapTop()),
-            };
-        }
+            } else null,
+        };
 
         try cache.put(.{ char, size }, result);
         return result;
     };
 }
 
-pub fn draw(text: []const u8, start_x: u16, start_y: u16, color: [3]f32) !u16 {
+pub fn draw(text: []const u8, start_x: f32, start_y: f32, color: [3]f32) !f32 {
     program.use();
     program.setUniform(.projection, &renderer.ortho);
     program.setUniform(.color, color);
 
     const size = face.size().metrics().y_ppem;
-
-    var x: f32 = @floatFromInt(start_x);
-    var y = renderer.height;
-    y -= @floatFromInt(start_y);
+    var x = start_x;
+    var y = renderer.height - start_y;
     y -= @floatFromInt(size);
 
     const view = try std.unicode.Utf8View.init(text);
@@ -96,12 +92,16 @@ pub fn draw(text: []const u8, start_x: u16, start_y: u16, color: [3]f32) !u16 {
         x += glyph.advance;
     }
 
-    return @intFromFloat(x);
+    return x;
 }
 
-pub var height: u16 = undefined;
+pub var height: f32 = undefined;
 
 pub fn setSize(size: u32) !void {
     try face.setPixelSizes(size, size);
-    height = @intCast(face.size().metrics().height >> 6);
+    height = fixed6(face.size().metrics().height);
+}
+
+fn fixed6(value: i32) f32 {
+    return @as(f32, @floatFromInt(value)) / 64;
 }

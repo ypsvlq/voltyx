@@ -5,7 +5,6 @@ const game = @import("../game.zig");
 const config = @import("../config.zig");
 const renderer = @import("../renderer.zig");
 const ui = @import("../ui.zig");
-const text = @import("../text.zig");
 const input = @import("../input.zig");
 const audio = @import("../audio.zig");
 const song_select = @import("song_select.zig");
@@ -105,20 +104,18 @@ pub fn draw3D() !void {
 }
 
 pub fn draw2D() !void {
-    const x = 10;
-    var y: u16 = 10;
-
+    ui.locate(10, 10);
     var iter = input.state.buttons.iterator();
     while (iter.next()) |button| {
-        _ = try text.draw(@tagName(button), x, y, .{ 1, 1, 1 });
-        y += text.height;
+        try ui.drawText(@tagName(button), .{ 1, 1, 1 });
+        ui.newline();
     }
 
     for (input.state.lasers, [2][]const u8{ "vol-l", "vol-r" }) |laser, name| {
         if (laser != 0) {
             const laser_text = try game.format("{s} {s}", .{ name, if (laser < 0) "left" else "right" });
-            _ = try text.draw(laser_text, x, y, .{ 1, 1, 1 });
-            y += text.height;
+            try ui.drawText(laser_text, .{ 1, 1, 1 });
+            ui.newline();
         }
     }
 

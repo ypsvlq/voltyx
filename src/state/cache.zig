@@ -6,7 +6,6 @@ const vfs = @import("../vfs.zig");
 const config = @import("../config.zig");
 const db = @import("../db.zig");
 const ui = @import("../ui.zig");
-const text = @import("../text.zig");
 
 pub const Difficulty = struct {
     abbrev: *const [3]u8,
@@ -70,6 +69,7 @@ var names = std.StringHashMap(void).init(game.state_allocator);
 var name_iter: ?@TypeOf(name_query).RowIterator = null;
 
 pub fn enter() !void {
+    ui.locate(10, 10);
     try ui.setTextSize(36);
     songs = try vfs.openIterableDir("songs");
     songs_iter = songs.iterateAssumeFirstIteration();
@@ -152,7 +152,7 @@ pub fn update() !void {
 }
 
 pub fn draw2D() !void {
-    _ = try text.draw("Updating song cache...", 10, 10, .{ 1, 1, 1 });
+    try ui.drawText("Updating song cache...", .{ 1, 1, 1 });
 }
 
 const Info = struct {
