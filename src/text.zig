@@ -102,6 +102,6 @@ pub fn setSize(size: u32) !void {
     height = fixed6(face.size().metrics().height);
 }
 
-fn fixed6(value: i32) f32 {
+fn fixed6(value: c_long) f32 {
     return @as(f32, @floatFromInt(value)) / 64;
 }
