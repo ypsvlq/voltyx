@@ -1,5 +1,5 @@
 const std = @import("std");
-const img = @import("zigimg");
+const zigimg = @import("zigimg");
 const gl = @import("gl.zig");
 const game = @import("game.zig");
 const vfs = @import("vfs.zig");
@@ -240,29 +240,29 @@ pub fn createTexture(bytes: [*]const u8, width: usize, height: usize, texture_fo
     return texture;
 }
 
-fn createPNGTexture(stream: *std.io.StreamSource) !u32 {
-    const image = try img.png.PNG.readImage(game.temp_allocator, stream);
-
-    const format: TextureFormat = switch (image.pixelFormat()) {
-        .grayscale8 => .alpha,
-        .rgb24 => .rgb,
-        .rgba32 => .rgba,
-        else => return error.UnsupportedPixelFormat,
-    };
-
-    return createTexture(image.rawBytes().ptr, image.width, image.height, format);
+pub fn createImageTexture(image: zigimg.ImageUnmanaged) !u32 {
+    return createTexture(
+        image.rawBytes().ptr,
+        image.width,
+        image.height,
+        switch (image.pixelFormat()) {
+            .grayscale8 => .alpha,
+            .rgb24 => .rgb,
+            .rgba32 => .rgba,
+            else => return error.UnsupportedPixelFormat,
+        },
+    );
 }
 
 pub fn loadPNG(path: []const u8) !u32 {
     const file = try vfs.openFile(path);
     defer file.close();
-
     var stream = std.io.StreamSource{ .file = file };
-    return createPNGTexture(&stream);
+    return createImageTexture(try zigimg.png.PNG.readImage(game.temp_allocator, &stream));
 }
 
 pub fn loadEmbeddedPNG(comptime path: []const u8) !u32 {
     const bytes = @embedFile("assets/textures/" ++ path);
     var stream = std.io.StreamSource{ .const_buffer = std.io.fixedBufferStream(bytes) };
-    return createPNGTexture(&stream);
+    return createImageTexture(try zigimg.png.PNG.readImage(game.temp_allocator, &stream));
 }

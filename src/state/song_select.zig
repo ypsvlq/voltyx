@@ -10,6 +10,7 @@ const input = @import("../input.zig");
 const audio = @import("../audio.zig");
 const cache = @import("cache.zig");
 const ingame = @import("ingame.zig");
+const jacket_cache = @import("song_select/jacket_cache.zig");
 
 pub const Song = struct {
     hash: u64,
@@ -38,12 +39,11 @@ pub const Song = struct {
 
 var song_query: db.Statement(void, cache.Song) = undefined;
 var chart_query: db.Statement(i64, cache.Chart) = undefined;
-var default_jacket: u32 = undefined;
 
 pub fn init() !void {
     try song_query.prepare("SELECT hash,name,title,artist,bpm,preview,chart1,chart2,chart3,chart4 FROM song WHERE name IS NOT NULL ORDER BY name");
     try chart_query.prepare("SELECT level,difficulty,effector,illustrator,jacket,audio FROM chart WHERE id = ?");
-    default_jacket = try glw.loadEmbeddedPNG("jacket.png");
+    try jacket_cache.init();
 }
 
 var songs = std.ArrayList(Song).init(game.allocator);
@@ -51,6 +51,7 @@ var want_preview: bool = false;
 
 pub fn enter() !void {
     songs.clearRetainingCapacity();
+    jacket_cache.clear();
 
     var iter = try song_query.iter({});
     while (try iter.next()) |row| {
@@ -176,7 +177,7 @@ pub fn draw2D() !void {
         const index = song.getIndex(config.difficulty);
         const chart = song.charts[index];
 
-        const jacket = try loadJacket(song, index);
+        const jacket = try jacket_cache.get(song.name, index);
         ui.drawImage(jacket, 0, base, size, size);
 
         ui.locate(size + 10, base + 5);
@@ -197,29 +198,4 @@ pub fn draw2D() !void {
         }
         base += size;
     }
-}
-
-var jacket_cache = std.StringHashMap([4]u32).init(game.allocator);
-
-fn loadJacket(song: Song, difficulty: u2) !u32 {
-    if (@import("builtin").mode == .Debug) return default_jacket;
-
-    if (jacket_cache.get(song.name)) |jackets| {
-        return jackets[difficulty];
-    }
-
-    var jackets: [4]u32 = undefined;
-    for (song.charts, &jackets) |chart, *out| {
-        if (chart.level != 0) {
-            const path = try game.format("songs/{s}/{c}.png", .{ song.name, chart.jacket });
-            out.* = glw.loadPNG(path) catch |err| blk: {
-                std.log.err("could not load {s}: {s}", .{ path, @errorName(err) });
-                break :blk default_jacket;
-            };
-        }
-    }
-
-    try jacket_cache.put(song.name, jackets);
-
-    return jackets[difficulty];
 }
