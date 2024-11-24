@@ -34,23 +34,26 @@ pub const PlayOptions = struct {
     length: ?f32 = null,
 };
 
-pub fn play(path: []const u8, options: PlayOptions) !void {
-    mutex.lock();
-    defer mutex.unlock();
-
+pub fn load(path: []const u8) ![]f32 {
     const file = try vfs.openFile(path);
     defer file.close();
 
     const decoded = try Opus.decodeStream(game.allocator, .{ .file = file });
+    return decoded.samples;
+}
+
+pub fn play(buffer: []f32, options: PlayOptions) !void {
+    mutex.lock();
+    defer mutex.unlock();
 
     const indices_per_s = 48000 * 2;
     const start: usize = @intFromFloat(options.start * indices_per_s);
-    const length: usize = if (options.length) |length| @intFromFloat(length * indices_per_s) else decoded.samples.len;
+    const length: usize = if (options.length) |length| @intFromFloat(length * indices_per_s) else buffer.len;
 
-    if (start + length > decoded.samples.len) return error.InvalidOffset;
+    if (start + length > buffer.len) return error.InvalidOffset;
 
     game.allocator.free(samples);
-    samples = decoded.samples[0 .. start + length];
+    samples = buffer[0 .. start + length];
     i = start;
 }
 

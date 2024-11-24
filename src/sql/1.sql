@@ -5,9 +5,7 @@ CREATE TABLE chart(
   level INTEGER NOT NULL,
   difficulty INTEGER NOT NULL,
   effector TEXT NOT NULL,
-  illustrator TEXT NOT NULL,
-  jacket INTEGER NOT NULL,
-  audio INTEGER NOT NULL
+  illustrator TEXT NOT NULL
 );
 
 CREATE TABLE song(

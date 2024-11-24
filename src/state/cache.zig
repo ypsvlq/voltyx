@@ -31,8 +31,6 @@ pub const Chart = struct {
     difficulty: u8,
     effector: []const u8,
     illustrator: []const u8,
-    jacket: u8,
-    audio: u8,
 };
 
 pub const Song = struct {
@@ -54,7 +52,7 @@ var song_erase: db.Statement([]const u8, void) = undefined;
 var name_query: db.Statement(void, struct { []const u8, [4]?i64 }) = undefined;
 
 pub fn init() !void {
-    try chart_insert.prepare("INSERT INTO chart(level,difficulty,effector,illustrator,jacket,audio) VALUES(?,?,?,?,?,?)");
+    try chart_insert.prepare("INSERT INTO chart(level,difficulty,effector,illustrator) VALUES(?,?,?,?)");
     try song_insert.prepare("INSERT INTO song(hash,name,title,artist,bpm,preview,chart1,chart2,chart3,chart4) VALUES(?,?,?,?,?,?,?,?,?,?)");
     try song_query.prepare("SELECT hash,chart1,chart2,chart3,chart4 FROM song WHERE name = ?");
     try song_delete.prepare("DELETE FROM song WHERE name = ?");
@@ -221,8 +219,6 @@ const Info = struct {
 
         var last_effector: []const u8 = "unknown";
         var last_illustrator: []const u8 = "unknown";
-        var last_jacket: u8 = '1';
-        var last_audio: u8 = '1';
 
         for (&charts, self.charts, 0..) |*chart, info, tier| {
             if (info.level != 0) {
@@ -244,23 +240,11 @@ const Info = struct {
                     .difficulty = info.difficulty,
                     .effector = last_effector,
                     .illustrator = last_illustrator,
-                    .jacket = try accessChartFile(dir, ".png", index, &last_jacket),
-                    .audio = try accessChartFile(dir, ".opus", index, &last_audio),
                 };
             }
         }
 
         song.hash = hash.final();
         return .{ song, charts };
-    }
-
-    fn accessChartFile(dir: std.fs.Dir, comptime ext: []const u8, index: u8, last_valid_index: *u8) !u8 {
-        if (dir.access(.{index} ++ ext, .{})) {
-            last_valid_index.* = index;
-            return index;
-        } else |err| switch (err) {
-            error.FileNotFound => return last_valid_index.*,
-            else => return err,
-        }
     }
 };

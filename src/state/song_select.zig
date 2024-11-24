@@ -26,8 +26,6 @@ pub const Song = struct {
         difficulty: cache.Difficulty,
         effector: []const u8,
         illustrator: []const u8,
-        jacket: u8,
-        audio: u8,
     };
 
     fn getIndex(self: Song, target_difficulty: u2) u2 {
@@ -42,7 +40,7 @@ var chart_query: db.Statement(i64, cache.Chart) = undefined;
 
 pub fn init() !void {
     try song_query.prepare("SELECT hash,name,title,artist,bpm,preview,chart1,chart2,chart3,chart4 FROM song WHERE name IS NOT NULL ORDER BY name");
-    try chart_query.prepare("SELECT level,difficulty,effector,illustrator,jacket,audio FROM chart WHERE id = ?");
+    try chart_query.prepare("SELECT level,difficulty,effector,illustrator FROM chart WHERE id = ?");
     try jacket_cache.init();
 }
 
@@ -74,8 +72,6 @@ pub fn enter() !void {
                     .difficulty = cache.difficulties[info.difficulty],
                     .effector = try game.state_allocator.dupe(u8, info.effector),
                     .illustrator = try game.state_allocator.dupe(u8, info.illustrator),
-                    .jacket = info.jacket,
-                    .audio = info.audio,
                 };
             } else {
                 chart.level = 0;
@@ -144,7 +140,8 @@ pub fn update() !void {
     } else if (want_preview and std.time.milliTimestamp() - last_laser_tick[1] > 500) {
         want_preview = false;
         const path = try game.format("songs/{s}/1.opus", .{song.name});
-        audio.play(path, .{ .start = song.preview, .length = 10 }) catch |err| {
+        const samples = try audio.load(path);
+        audio.play(samples, .{ .start = song.preview, .length = 10 }) catch |err| {
             std.log.err("could not play {s}: {s}", .{ path, @errorName(err) });
         };
     }

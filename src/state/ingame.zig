@@ -29,9 +29,18 @@ pub fn init() !void {
     try color_program.compile();
 }
 
-pub fn prepare(song: song_select.Song, index: u2) !void {
-    const audio_path = try game.format("songs/{s}/{c}.opus", .{ song.name, song.charts[index].audio });
-    try audio.play(audio_path, .{});
+pub fn prepare(song: song_select.Song, index: u8) !void {
+    var audio_index = index;
+    while (audio_index >= 0) : (audio_index -= 1) {
+        const path = try game.format("songs/{s}/{c}.opus", .{ song.name, '1' + audio_index });
+        if (audio.load(path)) |samples| {
+            try audio.play(samples, .{});
+            break;
+        } else |err| switch (err) {
+            error.FileNotFound => {},
+            else => return err,
+        }
+    }
 }
 
 pub fn enter() !void {
