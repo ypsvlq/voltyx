@@ -8,24 +8,24 @@
             .hash = "1220aa7c8073ce6da4ffbf6a447f04fd9896678fda06cd0d16be19ec0ed194d509e9",
         },
         .wio = .{
-            .url = "https://github.com/ypsvlq/wio/archive/18a434e37238f80ee33e5dff4a8fcb86dd06b3f6.tar.gz",
-            .hash = "12204d3a7d323a1768fc79cc3d8807ed8123b5e55d76b3cb66a8027206a3e873849b",
+            .url = "https://github.com/ypsvlq/wio/archive/9e4aa96461a218a224d191068439cfa696e729ba.tar.gz",
+            .hash = "12208d8ee4c609b86eb45388c3d25ae00d15b8212b22bc5e03da8c02701ed32bacad",
         },
         .@"mach-freetype" = .{
-            .url = "https://pkg.machengine.org/mach-freetype/dd5e749e40f08a40bed251a5ae6233308cd07e0d.tar.gz",
-            .hash = "12209b2055d213076fa0476de11c5eae1ad5b6fb91789e6bf218686b8f5f4a4114de",
+            .url = "https://pkg.machengine.org/mach-freetype/d63efa5534c17f3a12ed3d327e0ad42a64adc20a.tar.gz",
+            .hash = "1220adfccce3dbc4e4fa8650fdaec110a676f6b8a1462ed6ef422815207f8288e9d2",
         },
         .@"mach-opus" = .{
-            .url = "https://pkg.machengine.org/mach-opus/278dc3f47f6924fa92fa9b6e20c143407c9889f7.tar.gz",
-            .hash = "12201343abe6c023540da4c1cf0a419439a9d4b18dd29ad10cf46befee8868a2e85e",
+            .url = "https://pkg.machengine.org/mach-opus/32712fd091636037959720ee00036a060816a4f0.tar.gz",
+            .hash = "12202e4cc38985a37bcf4804f29ec2fcba162410eee777d96ecdbb2c4260b14b7e68",
         },
         .zigimg = .{
-            .url = "https://github.com/zigimg/zigimg/archive/5b5d718159c6ec223a54c9bb960690576e5df9c2.tar.gz",
-            .hash = "122040d9cc905342547e1e9da227a7f16fae5e7ae23134cb62aaef64c5b2c4f58828",
+            .url = "https://github.com/zigimg/zigimg/archive/48bfe6d413a5b3723a7bcf36f1fabbba30efef68.tar.gz",
+            .hash = "12201b874ac217853e59f55477b96cb7a66d43a5930ed9b4f0cfc7113efc8f5a6449",
         },
         .sqlite = .{
-            .url = "https://sqlite.org/2024/sqlite-amalgamation-3470000.zip",
-            .hash = "12208ecb28699b71d3f37e8616418f5a53891418f13772b59dcbe19a67ace9880ae8",
+            .url = "https://sqlite.org/2024/sqlite-amalgamation-3470200.zip",
+            .hash = "122051c5d661be20b94797b56d7c77c01a970085c3fdd2daf5af3b1dfa3e82df80b0",
         },
     },
 }

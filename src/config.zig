@@ -33,8 +33,8 @@ const Section = struct {
 };
 
 const sections = std.StaticStringMap(Section).initComptime(.{
-    .{ "keys", .{ .load = input.keyConfigLoad, .save = input.keyConfigSave } },
-    .{ "joystick", .{ .load = input.joystickConfigLoad, .save = input.joystickConfigSave } },
+    .{ "keys", Section{ .load = input.keyConfigLoad, .save = input.keyConfigSave } },
+    .{ "joystick", Section{ .load = input.joystickConfigLoad, .save = input.joystickConfigSave } },
 });
 
 fn process(iter: *Ini) !void {

@@ -108,7 +108,7 @@ pub fn main() !void {
         try @field(State.vtables, decl.name).init();
     }
 
-    return wio.run(loop, .{});
+    return wio.run(loop);
 }
 
 fn loop() !bool {
