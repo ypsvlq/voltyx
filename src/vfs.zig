@@ -1,16 +1,21 @@
 const std = @import("std");
+const build_options = @import("build_options");
 const game = @import("game.zig");
 const config = @import("config.zig");
 const fs = std.fs;
 
 var vpath: []const u8 = undefined;
 var vdir: fs.Dir = undefined;
+var assets: fs.Dir = undefined;
 
 pub fn init() !void {
     vpath = try fs.selfExeDirPathAlloc(game.allocator);
     vdir = try fs.openDirAbsolute(vpath, .{});
-    try config.load();
+    if (build_options.asset_path.len > 0) {
+        assets = try vdir.openDir(build_options.asset_path, .{});
+    }
 
+    try config.load();
     if (config.appdata) {
         game.allocator.free(vpath);
         vdir.close();
@@ -51,4 +56,12 @@ pub fn readFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 
 pub fn createFile(path: []const u8) !fs.File {
     return vdir.createFile(path, .{});
+}
+
+pub fn loadAsset(comptime path: []const u8) ![]const u8 {
+    if (build_options.asset_path.len > 0) {
+        return readFileAt(game.allocator, assets, path);
+    } else {
+        return @embedFile("assets/" ++ path);
+    }
 }

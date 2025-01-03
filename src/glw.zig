@@ -262,7 +262,7 @@ pub fn loadPNG(path: []const u8) !u32 {
 }
 
 pub fn loadEmbeddedPNG(comptime path: []const u8) !u32 {
-    const bytes = @embedFile("assets/textures/" ++ path);
+    const bytes = try vfs.loadAsset("textures/" ++ path);
     var stream = std.io.StreamSource{ .const_buffer = std.io.fixedBufferStream(bytes) };
     return createImageTexture(try zigimg.png.PNG.readImage(game.temp_allocator, &stream));
 }

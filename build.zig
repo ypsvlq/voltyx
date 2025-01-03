@@ -19,6 +19,12 @@ pub fn build(b: *std.Build) void {
     exe.subsystem = .Windows;
     exe.addWin32ResourceFile(.{ .file = b.path("src/windows/resource.rc") });
 
+    const options = b.addOptions();
+    const default_asset_path = if (target.query.isNative()) "../../src/assets" else "";
+    const asset_path = b.option([]const u8, "asset_path", "") orelse default_asset_path;
+    options.addOption([]const u8, "asset_path", asset_path);
+    exe.root_module.addOptions("build_options", options);
+
     const always_release = if (optimize == .Debug) .ReleaseFast else optimize;
     import(exe, "ylib", .{ .target = target, .optimize = optimize });
     import(exe, "wio", .{ .target = target, .optimize = optimize });

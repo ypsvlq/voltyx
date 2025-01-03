@@ -16,7 +16,7 @@ var program: glw.Program("text", .{
 pub fn init() !void {
     const ft = try freetype.Library.init();
 
-    face = try ft.createFaceMemory(@embedFile("assets/fonts/NotoSansJP-Regular.ttf"), 0);
+    face = try ft.createFaceMemory(try vfs.loadAsset("fonts/NotoSansJP-Regular.ttf"), 0);
 
     try program.compile();
     program.enableAttribArray(.vertex);
