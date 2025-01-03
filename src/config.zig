@@ -44,7 +44,7 @@ fn process(iter: *Ini) !void {
             if (section) |handlers| {
                 try handlers.load(entry.key, value);
             } else {
-                try entry.unpack(game.allocator, @This(), @This(), .{});
+                try entry.unpack(@This(), .{});
             }
         } else {
             section = sections.get(entry.key) orelse return error.UnknownSection;
@@ -53,7 +53,7 @@ fn process(iter: *Ini) !void {
 }
 
 pub fn load() !void {
-    const bytes = vfs.readFile(game.temp_allocator, "config.ini") catch return;
+    const bytes = vfs.readFile(game.allocator, "config.ini") catch return;
     var iter = Ini{ .bytes = bytes };
     process(&iter) catch |err| {
         std.log.err("config.ini line {}: {s}", .{ iter.line, @errorName(err) });
@@ -61,38 +61,11 @@ pub fn load() !void {
     };
 }
 
-fn writeEntry(writer: anytype, name: []const u8, value: anytype) !void {
-    const T = @TypeOf(value);
-    if (T == []const u8) {
-        try writer.print("{s} = {s}\n", .{ name, value });
-        return;
-    }
-    switch (@typeInfo(T)) {
-        .int, .float, .bool => try writer.print("{s} = {}\n", .{ name, value }),
-        .@"enum" => try writer.print("{s} = {s}\n", .{ name, @tagName(value) }),
-        .array => {
-            try writer.print("{s} =", .{name});
-            for (value) |elem| {
-                try writer.print(" {}", .{elem});
-            }
-            try writer.writeByte('\n');
-        },
-        .optional => if (value) |unwrapped| try writeEntry(writer, name, unwrapped),
-        .@"fn", .type => {},
-        else => @compileError("unhandled type: " ++ @typeName(T)),
-    }
-}
-
 pub fn save() !void {
     const file = try vfs.createFile("config.ini");
     defer file.close();
     const writer = file.writer();
-
-    inline for (@typeInfo(@This()).@"struct".decls) |decl| {
-        const value = @field(@This(), decl.name);
-        try writeEntry(writer, decl.name, value);
-    }
-
+    try Ini.write(@This(), writer, .{});
     for (sections.keys(), sections.values()) |name, section| {
         try writer.print("\n[{s}]\n", .{name});
         try section.save(writer);

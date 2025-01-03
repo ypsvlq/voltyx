@@ -4,8 +4,8 @@
     .paths = .{ "src", "build.zig", "build.zig.zon" },
     .dependencies = .{
         .ylib = .{
-            .url = "https://github.com/ypsvlq/ylib/archive/3792ce69365bb329a4ed7c3af3aa60d2a0f06bbc.tar.gz",
-            .hash = "1220aa7c8073ce6da4ffbf6a447f04fd9896678fda06cd0d16be19ec0ed194d509e9",
+            .url = "https://github.com/ypsvlq/ylib/archive/1f2dc0e4d6fd475d7c75bd8c71d806cf77198e53.tar.gz",
+            .hash = "12205790a02e0e87165d3cdbe990fd7d15b138fb4681fbe69a673bded6c45a85ffee",
         },
         .wio = .{
             .url = "https://github.com/ypsvlq/wio/archive/9e4aa96461a218a224d191068439cfa696e729ba.tar.gz",

@@ -178,9 +178,9 @@ const Info = struct {
         while (try iter.next()) |entry| {
             if (entry.value) |_| {
                 if (current_chart) |chart| {
-                    try entry.unpack(null, ChartInfo, chart, .{});
+                    try entry.unpack(chart, .{});
                 } else {
-                    try entry.unpack(null, SongInfo, &info.song, .{});
+                    try entry.unpack(&info.song, .{});
                 }
             } else {
                 current_chart = blk: {
